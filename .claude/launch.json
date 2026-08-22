@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vulnershop-flask",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["PORT=5050", ".venv/bin/python", "run.py"],
+      "port": 5050
+    }
+  ]
+}

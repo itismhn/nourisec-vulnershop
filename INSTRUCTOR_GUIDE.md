@@ -256,9 +256,17 @@ subprocess.run(["ping", "-c", "1", host], capture_output=True, text=True, timeou
 **Root cause:** `requests.get(url, timeout=5)` with a fully attacker-controlled `url` and no
 scheme/host allow-list or deny-list for internal ranges.
 
-**Exploit:** `url = http://127.0.0.1:5000/admin/users` fetches the (HTML) admin user list
-server-side and saves it as an "image" — demonstrating that the server can be made to reach
-internal-only endpoints on the attacker's behalf. In a real deployment this same bug class
+**Exploit:** `url = http://127.0.0.1:5000/dev/last-reset` makes the server fetch its own
+unauthenticated debug page (finding #5) server-side and save it as an "image" — proof the
+server can be made to reach internal-only endpoints on the attacker's behalf. Viewing the saved
+file under `/uploads/` shows the fetched HTML, including any live reset link.
+
+Note for the walkthrough: `requests.get()` here doesn't carry the *browser's* session cookie
+(it's a separate, unauthenticated server-side HTTP client), so pointing this at an
+authenticated page like `/admin/users` just fetches the login redirect, not the user list —
+a good teaching moment on why SSRF impact depends on what's reachable *without* auth from the
+server's own vantage point (this is also exactly why cloud metadata endpoints, which require no
+credentials, are the classic real-world SSRF target). In a real deployment this same bug class
 reaches cloud metadata endpoints, internal admin APIs, etc.
 
 **Safety note:** same as #10 — only demonstrate this on the isolated Docker network shipped
