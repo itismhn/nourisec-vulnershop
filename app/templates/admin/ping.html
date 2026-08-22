@@ -1,15 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Admin - Server Health Check{% endblock %}
+{% block title %}بررسی سلامت سرور{% endblock %}
 {% block content %}
-<h1>Server Health Check</h1>
-<p class="text-muted">Ping an internal host to check connectivity.</p>
-<form method="post" class="mb-3" style="max-width:400px;">
-    <div class="input-group">
-        <input type="text" name="host" class="form-control" value="{{ host }}" placeholder="127.0.0.1">
-        <button class="btn btn-primary">Ping</button>
-    </div>
+<h1 class="page-title">بررسی سلامت سرور</h1>
+<p style="color:var(--ink-soft);">یک هاست داخلی را برای بررسی اتصال پینگ کنید.</p>
+<form method="post" class="card-block" style="max-width:420px; display:flex; gap:8px; margin-bottom:20px;">
+    <input type="text" name="host" value="{{ host }}" placeholder="127.0.0.1" style="flex:1; border:1.5px solid var(--line); border-radius:10px; padding:11px 14px; font-family:inherit;">
+    <button class="btn btn-primary">پینگ</button>
 </form>
 {% if output %}
-<pre class="bg-dark text-light p-3">{{ output }}</pre>
+<pre style="background:var(--ink); color:#EFE7D8; padding:18px; border-radius:12px; direction:ltr; text-align:left; overflow-x:auto;">{{ output }}</pre>
 {% endif %}
 {% endblock %}

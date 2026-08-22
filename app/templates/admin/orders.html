@@ -1,19 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Admin - Orders{% endblock %}
+{% block title %}مدیریت سفارش‌ها{% endblock %}
 {% block content %}
-<h1>All Orders</h1>
-<table class="table">
-    <thead><tr><th>ID</th><th>User</th><th>Total</th><th>Status</th><th>Created</th></tr></thead>
-    <tbody>
-    {% for o in orders %}
-        <tr>
-            <td><a href="{{ url_for('account.order_detail', order_id=o['id']) }}">{{ o['id'] }}</a></td>
-            <td>{{ o['username'] }}</td>
-            <td>${{ "%.2f"|format(o['total']) }}</td>
-            <td>{{ o['status'] }}</td>
-            <td>{{ o['created_at'] }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<h1 class="page-title">همه سفارش‌ها</h1>
+<div class="card-block" style="padding:0; overflow-x:auto;">
+    <table class="table-clean" style="margin:0; min-width:560px;">
+        <thead><tr><th style="padding-right:18px;">شناسه</th><th>کاربر</th><th>مبلغ کل</th><th>وضعیت</th><th>تاریخ ثبت</th></tr></thead>
+        <tbody>
+        {% for o in orders %}
+            <tr>
+                <td style="padding-right:18px;"><a href="{{ url_for('account.order_detail', order_id=o['id']) }}">{{ o['id']|fanum }}</a></td>
+                <td>{{ o['username'] }}</td>
+                <td>{{ o['total']|toman }} تومان</td>
+                <td>{{ o['status'] }}</td>
+                <td>{{ o['created_at'] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

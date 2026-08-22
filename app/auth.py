@@ -21,15 +21,15 @@ def register():
 
         # VULN: Broken Authentication - no password complexity/length policy (WSTG-ATHN-07)
         if not username or not password:
-            flash("Username and password are required.", "danger")
+            flash("نام کاربری و رمز عبور الزامی است.", "danger")
             return render_template("register.html")
 
         if get_user_by_username(username):
-            flash("Username already taken.", "danger")
+            flash("این نام کاربری قبلا استفاده شده است.", "danger")
             return render_template("register.html")
 
         create_user(username, email, password)
-        flash("Account created. You can log in now.", "success")
+        flash("حساب کاربری شما ساخته شد. اکنون می‌توانید وارد شوید.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("register.html")
@@ -63,10 +63,10 @@ def login():
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["role"] = user["role"]
-            flash(f"Welcome back, {user['username']}!", "success")
+            flash(f"خوش آمدید، {user['username']}!", "success")
             return redirect(url_for("shop.index"))
 
-        flash("Invalid username or password.", "danger")
+        flash("نام کاربری یا رمز عبور اشتباه است.", "danger")
         return render_template("login.html")
 
     return render_template("login.html")
@@ -75,7 +75,7 @@ def login():
 @auth_bp.route("/logout")
 def logout():
     session.clear()
-    flash("You have been logged out.", "info")
+    flash("از حساب کاربری خود خارج شدید.", "info")
     return redirect(url_for("shop.index"))
 
 
@@ -99,8 +99,7 @@ def forgot_password():
             LAST_RESET["username"] = username
 
         flash(
-            "If that account exists, a password reset link has been sent to the "
-            "registered email address.",
+            "در صورت وجود این حساب کاربری، لینک بازیابی رمز عبور به ایمیل ثبت‌شده ارسال شد.",
             "info",
         )
         return redirect(url_for("auth.login"))
@@ -113,7 +112,7 @@ def reset_password(token):
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE reset_token = ?", (token,)).fetchone()
     if not user:
-        flash("Invalid or expired reset link.", "danger")
+        flash("لینک بازیابی نامعتبر یا منقضی شده است.", "danger")
         return redirect(url_for("auth.login"))
 
     if request.method == "POST":
@@ -123,7 +122,7 @@ def reset_password(token):
             (hash_password(new_password), user["id"]),
         )
         db.commit()
-        flash("Password updated. Please log in.", "success")
+        flash("رمز عبور با موفقیت تغییر کرد. لطفا وارد شوید.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("reset_password.html", token=token)

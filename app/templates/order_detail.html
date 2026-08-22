@@ -1,18 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Order #{{ order['id'] }} - NouriSec VulnerShop{% endblock %}
+{% block title %}سفارش #{{ order['id'] }} - نوری‌شاپ{% endblock %}
 {% block content %}
-<h1>Order #{{ order['id'] }}</h1>
-<p>Placed by user ID: {{ order['user_id'] }} &middot; Status: {{ order['status'] }} &middot; Total: ${{ "%.2f"|format(order['total']) }}</p>
-<table class="table">
-    <thead><tr><th>Product</th><th>Qty</th><th>Price</th></tr></thead>
-    <tbody>
-    {% for item in items %}
-        <tr>
-            <td>{{ item['product_name'] }}</td>
-            <td>{{ item['quantity'] }}</td>
-            <td>${{ "%.2f"|format(item['price']) }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<h1 class="page-title">سفارش #{{ order['id']|fanum }}</h1>
+<p style="color:var(--ink-soft);">مربوط به کاربر شماره {{ order['user_id']|fanum }} · وضعیت: {{ order['status'] }} · مبلغ کل: {{ order['total']|toman }} تومان</p>
+<div class="card-block" style="padding:0;">
+    <table class="table-clean" style="margin:0;">
+        <thead><tr><th style="padding:14px 18px;">محصول</th><th>تعداد</th><th>قیمت</th></tr></thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td style="padding-right:18px;">{{ item['product_name'] }}</td>
+                <td>{{ item['quantity']|fanum }}</td>
+                <td>{{ item['price']|toman }} تومان</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

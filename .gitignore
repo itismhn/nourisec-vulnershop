@@ -6,3 +6,4 @@ instance/*.db
 app/uploads/*
 !app/uploads/.gitkeep
 .DS_Store
+design-mockup/

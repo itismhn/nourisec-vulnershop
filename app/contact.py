@@ -17,6 +17,6 @@ def contact():
             (name, email, message),
         )
         db.commit()
-        flash("Thanks for reaching out - our (fake) support team will get back to you.", "success")
+        flash("پیام شما ثبت شد - تیم پشتیبانی (آزمایشی) به‌زودی پاسخ می‌دهد.", "success")
         return redirect(url_for("contact.contact"))
     return render_template("contact.html")

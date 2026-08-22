@@ -25,6 +25,7 @@ CREATE TABLE products (
     name TEXT NOT NULL,
     description TEXT,
     price REAL NOT NULL,
+    original_price REAL,
     category TEXT,
     image TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -36,6 +37,7 @@ CREATE TABLE reviews (
     user_id INTEGER,
     username TEXT NOT NULL,
     body TEXT NOT NULL,
+    rating INTEGER NOT NULL DEFAULT 5,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(product_id) REFERENCES products(id)
 );

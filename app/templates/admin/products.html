@@ -1,30 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Admin - Products{% endblock %}
+{% block title %}مدیریت محصولات{% endblock %}
 {% block content %}
-<h1>Products</h1>
-<form method="post" class="row g-2 mb-4">
-    <div class="col-auto"><input name="name" class="form-control" placeholder="Name"></div>
-    <div class="col-auto"><input name="category" class="form-control" placeholder="Category"></div>
-    <div class="col-auto"><input name="price" class="form-control" placeholder="Price" type="number" step="0.01"></div>
-    <div class="col"><input name="description" class="form-control" placeholder="Description"></div>
-    <div class="col-auto"><button class="btn btn-primary">Add</button></div>
+<h1 class="page-title">محصولات</h1>
+<form method="post" class="card-block" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;">
+    <div class="field" style="margin:0;"><label>نام</label><input name="name"></div>
+    <div class="field" style="margin:0;"><label>دسته‌بندی</label><input name="category"></div>
+    <div class="field" style="margin:0;"><label>قیمت (تومان)</label><input name="price" type="number" step="1"></div>
+    <div class="field" style="margin:0; flex:1; min-width:180px;"><label>توضیحات</label><input name="description"></div>
+    <button class="btn btn-primary">افزودن محصول</button>
 </form>
-<table class="table">
-    <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
-    <tbody>
-    {% for p in products %}
-        <tr>
-            <td>{{ p['id'] }}</td>
-            <td>{{ p['name'] }}</td>
-            <td>{{ p['category'] }}</td>
-            <td>${{ "%.2f"|format(p['price']) }}</td>
-            <td>
-                <form method="post" action="{{ url_for('admin.delete_product', product_id=p['id']) }}">
-                    <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </form>
-            </td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="card-block" style="padding:0; overflow-x:auto;">
+    <table class="table-clean" style="margin:0; min-width:560px;">
+        <thead><tr><th style="padding-right:18px;">شناسه</th><th>نام</th><th>دسته‌بندی</th><th>قیمت</th><th></th></tr></thead>
+        <tbody>
+        {% for p in products %}
+            <tr>
+                <td style="padding-right:18px;">{{ p['id']|fanum }}</td>
+                <td>{{ p['name'] }}</td>
+                <td>{{ p['category'] }}</td>
+                <td>{{ p['price']|toman }} تومان</td>
+                <td>
+                    <form method="post" action="{{ url_for('admin.delete_product', product_id=p['id']) }}">
+                        <button class="btn btn-outline" style="padding:6px 12px; font-size:12px;">حذف</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

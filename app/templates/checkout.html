@@ -1,23 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Checkout - NouriSec VulnerShop{% endblock %}
+{% block title %}پرداخت - نوری‌شاپ{% endblock %}
 {% block content %}
-<h1>Checkout</h1>
-<div class="alert alert-info">This is a fake checkout for training purposes. No real payment is processed - do not enter real card details.</div>
-<form method="post">
-    <div class="mb-3">
-        <label class="form-label">Card Number (fake)</label>
-        <input type="text" class="form-control" placeholder="4111 1111 1111 1111" pattern="[0-9 ]*">
+<h1 class="page-title">تسویه حساب</h1>
+<div class="alert alert-info" style="max-width:480px;">این یک پرداخت آزمایشی برای اهداف آموزشی است. هیچ مبلغ واقعی کسر نمی‌شود - لطفا اطلاعات کارت واقعی وارد نکنید.</div>
+
+<form method="post" class="form-page" style="margin:20px 0;">
+    <div class="field">
+        <label>شماره کارت (آزمایشی)</label>
+        <input type="text" placeholder="۱۲۳۴ ۵۶۷۸ ۹۰۱۲ ۳۴۵۶">
     </div>
-    <div class="row">
-        <div class="col mb-3">
-            <label class="form-label">Expiry (fake)</label>
-            <input type="text" class="form-control" placeholder="12/34">
+    <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:1;">
+            <label>تاریخ انقضا (آزمایشی)</label>
+            <input type="text" placeholder="۰۴/۰۶">
         </div>
-        <div class="col mb-3">
-            <label class="form-label">CVV (fake)</label>
-            <input type="text" class="form-control" placeholder="123">
+        <div class="field" style="flex:1;">
+            <label>CVV2 (آزمایشی)</label>
+            <input type="text" placeholder="۱۲۳">
         </div>
     </div>
-    <button type="submit" class="btn btn-success">Place Fake Order</button>
+    <button type="submit" class="btn btn-primary btn-block">ثبت سفارش آزمایشی</button>
 </form>
 {% endblock %}

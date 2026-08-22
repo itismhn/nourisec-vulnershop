@@ -1,19 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Admin - Users{% endblock %}
+{% block title %}مدیریت کاربران{% endblock %}
 {% block content %}
-<h1>Users</h1>
-<table class="table">
-    <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Password Hash</th></tr></thead>
-    <tbody>
-    {% for u in users %}
-        <tr>
-            <td>{{ u['id'] }}</td>
-            <td>{{ u['username'] }}</td>
-            <td>{{ u['email'] }}</td>
-            <td>{{ u['role'] }}</td>
-            <td><code>{{ u['password_hash'] }}</code></td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<h1 class="page-title">کاربران</h1>
+<div class="card-block" style="padding:0; overflow-x:auto;">
+    <table class="table-clean" style="margin:0; min-width:600px;">
+        <thead><tr><th style="padding-right:18px;">شناسه</th><th>نام کاربری</th><th>ایمیل</th><th>نقش</th><th>هش رمز عبور</th></tr></thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td style="padding-right:18px;">{{ u['id']|fanum }}</td>
+                <td>{{ u['username'] }}</td>
+                <td>{{ u['email'] }}</td>
+                <td>{{ u['role'] }}</td>
+                <td><code style="direction:ltr; display:inline-block;">{{ u['password_hash'] }}</code></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

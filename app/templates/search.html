@@ -1,31 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Search - NouriSec VulnerShop{% endblock %}
+{% block title %}جستجو - نوری‌شاپ{% endblock %}
 {% block content %}
 <!-- VULN: Reflected XSS (WSTG-INPV-01) - the raw search term is rendered with |safe -->
-<h1>Search results for: {{ query|safe }}</h1>
+<h1 class="page-title">نتایج جستجو برای: {{ query|safe }}</h1>
 
 {% if error %}
-<div class="alert alert-secondary">
+<div class="alert alert-info" style="direction:ltr; text-align:left; font-family:monospace;">
     <strong>Debug info:</strong> {{ error }}
 </div>
 {% endif %}
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
+<div class="products-grid">
     {% for product in results %}
-    <div class="col">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">{{ product['name'] }}</h5>
-                <p class="card-text">{{ product['description'] }}</p>
-                <p class="fw-bold">${{ "%.2f"|format(product['price']) if product['price'] is number else product['price'] }}</p>
-                {% if product['id'] %}
-                <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}" class="btn btn-primary">View</a>
-                {% endif %}
+    <div class="p-card">
+        <div class="p-img-wrap">
+            {% if product['image'] %}
+            <img src="{{ url_for('static', filename='img/' + product['image']) }}" alt="">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/placeholder.svg') }}" alt="">
+            {% endif %}
+        </div>
+        <div class="p-body">
+            <div class="p-title">{{ product['name'] }}</div>
+            <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 10px;">{{ product['description'] }}</p>
+            <div class="p-price-row">
+                <span class="p-price">
+                    {% if product['price'] is number %}{{ product['price']|toman }}<small> تومان</small>{% else %}{{ product['price'] }}{% endif %}
+                </span>
             </div>
+            {% if product['id'] is number %}
+            <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}" class="btn btn-outline btn-block">مشاهده محصول</a>
+            {% endif %}
         </div>
     </div>
     {% else %}
-    <p class="text-muted">No products matched your search.</p>
+    <p style="color:var(--ink-soft);">هیچ محصولی با این عبارت پیدا نشد.</p>
     {% endfor %}
 </div>
 {% endblock %}

@@ -23,16 +23,16 @@ def _extension_allowed(filename):
 @uploads_bp.route("/account/avatar", methods=["POST"])
 def upload_avatar():
     if "user_id" not in session:
-        flash("Please log in first.", "warning")
+        flash("لطفا ابتدا وارد شوید.", "warning")
         return redirect(url_for("auth.login"))
 
     file = request.files.get("avatar")
     if not file or file.filename == "":
-        flash("No file selected.", "warning")
+        flash("فایلی انتخاب نشده است.", "warning")
         return redirect(url_for("account.profile", user_id=session["user_id"]))
 
     if not _extension_allowed(file.filename):
-        flash("File type not allowed.", "danger")
+        flash("این نوع فایل مجاز نیست.", "danger")
         return redirect(url_for("account.profile", user_id=session["user_id"]))
 
     # basename() only, to keep this sandboxed to the uploads folder - the
@@ -46,5 +46,5 @@ def upload_avatar():
     db.execute("UPDATE users SET avatar = ? WHERE id = ?", (stored_name, session["user_id"]))
     db.commit()
 
-    flash("Avatar updated.", "success")
+    flash("تصویر پروفایل به‌روزرسانی شد.", "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))

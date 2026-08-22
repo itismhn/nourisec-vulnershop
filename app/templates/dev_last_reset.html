@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Dev Debug - Last Reset{% endblock %}
+{% block title %}Debug - Last Reset{% endblock %}
 {% block content %}
-<h1>Debug: Last Password Reset</h1>
-<p class="text-muted">(Leftover debug page - should never exist in a real deployment.)</p>
-{% if link %}
-<p>Last reset requested for user: <strong>{{ username }}</strong></p>
-<p>Link: <code>{{ link }}</code></p>
-{% else %}
-<p>No reset has been requested yet.</p>
-{% endif %}
+<div class="card-block" style="max-width:600px; margin:30px auto;">
+    <h1 style="font-size:20px;">Debug: Last Password Reset</h1>
+    <p style="color:var(--ink-soft); font-size:13px;">(این صفحه دیباگ نباید در نسخه واقعی وجود داشته باشد.)</p>
+    {% if link %}
+    <p>آخرین درخواست بازیابی برای کاربر: <strong>{{ username }}</strong></p>
+    <p>لینک: <code style="direction:ltr; display:inline-block;">{{ link }}</code></p>
+    {% else %}
+    <p>هنوز درخواست بازیابی رمزی ثبت نشده است.</p>
+    {% endif %}
+</div>
 {% endblock %}

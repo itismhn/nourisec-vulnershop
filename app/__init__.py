@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, session
 
 from app import db as db_module
 from app.config import Config
@@ -24,7 +24,25 @@ def create_app():
 
     @app.context_processor
     def inject_banner():
-        return {"BANNER_TEXT": BANNER_TEXT}
+        cart_count = sum(session.get("cart", {}).values()) if session.get("cart") else 0
+        return {"BANNER_TEXT": BANNER_TEXT, "cart_count": cart_count}
+
+    _PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
+
+    @app.template_filter("toman")
+    def toman_filter(value):
+        # Formats a numeric price as Persian-digit, thousands-separated Toman.
+        try:
+            whole = int(round(float(value)))
+        except (TypeError, ValueError):
+            return value
+        grouped = f"{whole:,}".replace(",", "٬")
+        return "".join(_PERSIAN_DIGITS[int(ch)] if ch.isdigit() else ch for ch in grouped)
+
+    @app.template_filter("fanum")
+    def fanum_filter(value):
+        # Renders any integer-ish value using Persian digits (ratings, counts, dates).
+        return "".join(_PERSIAN_DIGITS[int(ch)] if ch.isdigit() else ch for ch in str(value))
 
     from app.auth import auth_bp
     from app.shop import shop_bp

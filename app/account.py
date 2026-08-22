@@ -27,7 +27,7 @@ def profile(user_id):
     # other user's profile by changing the number in the URL.
     user = get_user_by_id(user_id)
     if not user:
-        flash("User not found.", "warning")
+        flash("کاربر مورد نظر پیدا نشد.", "warning")
         return redirect(url_for("shop.index"))
 
     orders = get_orders_for_user(user_id)
@@ -51,7 +51,7 @@ def order_detail(order_id):
     # session["user_id"]. Incrementing the ID in the URL reveals other customers' orders.
     order = get_order(order_id)
     if not order:
-        flash("Order not found.", "warning")
+        flash("سفارش مورد نظر پیدا نشد.", "warning")
         return redirect(url_for("account.orders"))
 
     items = get_order_items(order_id)
@@ -70,7 +70,7 @@ def change_email():
     db = get_db()
     db.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, session["user_id"]))
     db.commit()
-    flash("Email updated.", "success")
+    flash("ایمیل با موفقیت به‌روزرسانی شد.", "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))
 
 
@@ -88,5 +88,5 @@ def change_password():
         (hash_password(new_password), session["user_id"]),
     )
     db.commit()
-    flash("Password updated.", "success")
+    flash("رمز عبور با موفقیت به‌روزرسانی شد.", "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))

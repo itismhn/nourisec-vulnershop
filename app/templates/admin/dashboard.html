@@ -1,20 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}پنل مدیریت{% endblock %}
 {% block content %}
-<h1>Admin Dashboard</h1>
-<div class="row g-3 mb-4">
-    <div class="col"><div class="card p-3">Users: {{ counts.users }}</div></div>
-    <div class="col"><div class="card p-3">Products: {{ counts.products }}</div></div>
-    <div class="col"><div class="card p-3">Orders: {{ counts.orders }}</div></div>
+<h1 class="page-title">پنل مدیریت</h1>
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+    <div class="card-block">کاربران: {{ counts.users|fanum }}</div>
+    <div class="card-block">محصولات: {{ counts.products|fanum }}</div>
+    <div class="card-block">سفارش‌ها: {{ counts.orders|fanum }}</div>
 </div>
-<ul class="list-group mb-4" style="max-width: 400px;">
-    <li class="list-group-item"><a href="{{ url_for('admin.users') }}">Manage Users</a></li>
-    <li class="list-group-item"><a href="{{ url_for('admin.products') }}">Manage Products</a></li>
-    <li class="list-group-item"><a href="{{ url_for('admin.orders') }}">View Orders</a></li>
-    <li class="list-group-item"><a href="{{ url_for('admin.ping') }}">Server Health Check</a></li>
-    <li class="list-group-item"><a href="{{ url_for('admin.fetch_image') }}">Fetch Product Image by URL</a></li>
-</ul>
-<form method="post" action="{{ url_for('admin.reset') }}" onsubmit="return confirm('Reset the database to the seeded state?');">
-    <button class="btn btn-danger">Reset Database</button>
+<div class="card-block" style="max-width:420px; padding:0; margin-bottom:24px;">
+    <a href="{{ url_for('admin.users') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">مدیریت کاربران</a>
+    <a href="{{ url_for('admin.products') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">مدیریت محصولات</a>
+    <a href="{{ url_for('admin.orders') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">مشاهده سفارش‌ها</a>
+    <a href="{{ url_for('admin.ping') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">بررسی سلامت سرور</a>
+    <a href="{{ url_for('admin.fetch_image') }}" style="display:block; padding:14px 18px; color:var(--ink);">دریافت تصویر محصول از URL</a>
+</div>
+<form method="post" action="{{ url_for('admin.reset') }}" onsubmit="return confirm('پایگاه‌داده به حالت اولیه بازنشانی شود؟');">
+    <button class="btn btn-danger">بازنشانی پایگاه‌داده</button>
 </form>
 {% endblock %}

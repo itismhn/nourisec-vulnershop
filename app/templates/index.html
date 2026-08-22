@@ -1,22 +1,133 @@
 {% extends "base.html" %}
-{% block title %}Home - NouriSec VulnerShop{% endblock %}
+{% block title %}نوری‌شاپ | فروشگاه آنلاین ایرانی{% endblock %}
 {% block content %}
-<h1>Welcome to VulnerShop</h1>
-<p class="text-muted">A totally real, totally fake online store.</p>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    {% for product in products %}
-    <div class="col">
-        <div class="card h-100">
-            <img src="{{ url_for('static', filename='img/' + (product['image'] or 'placeholder.svg')) }}" class="card-img-top" alt="">
-            <div class="card-body">
-                <h5 class="card-title">{{ product['name'] }}</h5>
-                <p class="card-text">{{ product['description'][:80] }}...</p>
-                <p class="fw-bold">${{ "%.2f"|format(product['price']) }}</p>
-                <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}" class="btn btn-primary">View</a>
+<div class="topbar" style="border-radius:0; margin:0 -24px;">
+    <div class="wrap">
+        <div class="topbar-links">
+            <span>پشتیبانی ۲۴ ساعته: ۰۲۱-۹۱۰۰۰۷۷۰</span>
+        </div>
+        <div class="topbar-links">
+            <a href="{{ url_for('account.orders') }}">پیگیری سفارش</a>
+        </div>
+    </div>
+</div>
+
+<div class="hero-section">
+    <div class="hero-grid">
+        <div class="hero-main">
+            <img src="{{ url_for('static', filename='img/bazaar.jpg') }}" alt="بازار سنتی">
+            <div class="hero-copy">
+                <span class="hero-eyebrow">فروش ویژه هفته</span>
+                <h1 class="hero-title">از دل بازار سنتی،<br>به دست شما</h1>
+                <p class="hero-desc">صنایع‌دستی، خواربار اصیل ایرانی و کالای دیجیتال اورجینال؛ با ارسال سریع از تهران، مشهد و اصفهان.</p>
+                <a class="hero-cta" href="#products">
+                    شروع خرید
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6" transform="rotate(180 12 12)"/></svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="promo-stack">
+            <div class="promo-card">
+                <img src="{{ url_for('static', filename='img/nowruz.jpg') }}" alt="جشنواره نوروز">
+                <div class="promo-inner">
+                    <span class="promo-tag">تا ۴۰٪ تخفیف</span>
+                    <h3 class="promo-title">جشنواره نوروز ۱۴۰۴</h3>
+                    <p class="promo-desc">هفت‌سین، عیدی و محصولات سنتی برای خانه‌تکانی بهاره</p>
+                    <a class="promo-link" href="#products">مشاهده جشنواره</a>
+                </div>
+            </div>
+
+            <div class="ad-card">
+                <span class="ad-label">تبلیغ</span>
+                <div>
+                    <div class="ad-top">
+                        <div class="ad-shield">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l7.5 3v5.4c0 5-3.2 8.9-7.5 10.1-4.3-1.2-7.5-5.1-7.5-10.1V5.5Z"/><path d="M9 12l2.2 2.2L15.5 9.7"/></svg>
+                        </div>
+                        <div class="ad-brand">NouriSec<small>آموزش امنیت سایبری و تست نفوذ</small></div>
+                    </div>
+                    <p class="ad-copy">دوره‌های عملی هک قانونمند، از صفر تا گزارش‌نویسی حرفه‌ای — همراه با آزمایشگاه‌های واقعی.</p>
+                </div>
+                <div class="ad-actions">
+                    <a class="ad-btn primary" href="#" rel="noopener" target="_blank">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5.5v13l11-6.5Z"/></svg>
+                        کانال یوتیوب
+                    </a>
+                    <a class="ad-btn ghost" href="#" rel="noopener" target="_blank">nourisec.ir</a>
+                </div>
             </div>
         </div>
     </div>
-    {% endfor %}
+
+    <div class="trust-strip">
+        <div class="trust-grid">
+            <div class="trust-item">
+                <div class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="6" width="12" height="9"/><path d="M13.5 9.5H18l3 3.2V15h-7.5Z"/><circle cx="6" cy="18" r="1.7"/><circle cx="17" cy="18" r="1.7"/></svg></div>
+                <div><b>ارسال سریع</b><span>تحویل ۲۴ تا ۷۲ ساعته در سراسر کشور</span></div>
+            </div>
+            <div class="trust-item">
+                <div class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.4 1.4 2.7-.3 1 2.5 2.3 1.4-.6 2.7.6 2.7-2.3 1.4-1 2.5-2.7-.3L12 18l-2.4-1.4-2.7.3-1-2.5-2.3-1.4.6-2.7-.6-2.7 2.3-1.4 1-2.5 2.7.3Z"/><path d="M8.5 12.2l2.2 2.2 4.3-4.6"/></svg></div>
+                <div><b>ضمانت اصالت کالا</b><span>تضمین بازگشت وجه در صورت مغایرت</span></div>
+            </div>
+            <div class="trust-item">
+                <div class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11a5 5 0 0 1 0 10H10"/><path d="M8 4 4 8l4 4"/></svg></div>
+                <div><b>۷ روز ضمانت بازگشت</b><span>بدون پرسش، بدون دردسر</span></div>
+            </div>
+            <div class="trust-item">
+                <div class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
+                <div><b>پرداخت امن</b><span>درگاه مستقیم بانک مرکزی</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="products">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">{% if active_category %}{{ active_category }}{% else %}پرفروش‌ترین‌های نوری‌شاپ{% endif %}</h2>
+                <div class="section-sub">بر اساس امتیاز و نظرات واقعی مشتریان</div>
+            </div>
+            {% if active_category %}<a class="see-all" href="{{ url_for('shop.index') }}">مشاهده همه محصولات ←</a>{% endif %}
+        </div>
+
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="p-card">
+                {% if product['original_price'] %}
+                <span class="p-badge">{{ (100 - (product['price'] / product['original_price'] * 100))|round|int|fanum }}٪ تخفیف</span>
+                {% endif %}
+                <button class="wish-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 4-4.4 7.6-8.8 11-4.4-3.4-8.8-7-8.8-11a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg></button>
+                <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}">
+                    <div class="p-img-wrap"><img src="{{ url_for('static', filename='img/' + (product['image'] or 'placeholder.svg')) }}" alt="{{ product['name'] }}"></div>
+                </a>
+                <div class="p-body">
+                    <div class="p-title"><a href="{{ url_for('shop.product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></div>
+                    {% if product['review_count'] %}
+                    <div class="p-rating">
+                        <span class="stars">{{ '★' * (product['avg_rating']|round|int) }}{{ '☆' * (5 - (product['avg_rating']|round|int)) }}</span>
+                        {{ product['avg_rating']|round(1)|fanum }} <span>({{ product['review_count']|fanum }} نظر)</span>
+                    </div>
+                    {% else %}
+                    <div class="p-rating"><span>هنوز نظری ثبت نشده</span></div>
+                    {% endif %}
+                    <div class="p-price-row">
+                        <span class="p-price">{{ product['price']|toman }}<small> تومان</small></span>
+                        {% if product['original_price'] %}<span class="p-price-old">{{ product['original_price']|toman }}</span>{% endif %}
+                    </div>
+                    <form method="post" action="{{ url_for('shop.cart_add', product_id=product['id']) }}">
+                        <input type="hidden" name="qty" value="1">
+                        <button type="submit" class="add-btn">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.4l1.9 11.2a2 2 0 0 0 2 1.7h8.6a2 2 0 0 0 2-1.6l1.4-7.3H6"/></svg>
+                            افزودن به سبد
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p style="color:var(--ink-soft);">محصولی برای نمایش وجود ندارد.</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}

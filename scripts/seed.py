@@ -12,19 +12,68 @@ from app import create_app
 from app.db import get_db, init_db
 from app.models import hash_password
 
+# (name, description, price, original_price, category, image)
 PRODUCTS = [
-    ("Wireless Mouse", "A smooth, reliable wireless mouse for everyday use.", 19.99, "Electronics"),
-    ("Mechanical Keyboard", "Clicky mechanical keyboard with RGB backlighting.", 59.99, "Electronics"),
-    ("USB-C Hub", "7-in-1 USB-C hub with HDMI and card reader.", 34.50, "Electronics"),
-    ("Ceramic Mug", "12oz ceramic mug, dishwasher safe.", 9.99, "Home"),
-    ("Standing Desk Mat", "Anti-fatigue mat for standing desks.", 24.99, "Home"),
-    ("Scented Candle", "Hand-poured soy candle, lavender scent.", 14.00, "Home"),
-    ("Running Shoes", "Lightweight running shoes with breathable mesh.", 74.99, "Apparel"),
-    ("Rain Jacket", "Waterproof packable rain jacket.", 45.00, "Apparel"),
-    ("Wool Beanie", "Warm wool beanie, one size fits most.", 12.50, "Apparel"),
-    ("Notebook Set", "3-pack of dot-grid notebooks.", 15.75, "Office"),
-    ("Desk Organizer", "Bamboo desk organizer with multiple compartments.", 22.00, "Office"),
-    ("Fountain Pen", "Smooth-writing fountain pen with converter.", 28.00, "Office"),
+    (
+        "زعفران سرگل ممتاز قائنات، ۱ مثقال",
+        "زعفران سرگل ممتاز، برداشت پاییز، بسته‌بندی اورجینال و عطر و رنگ‌دهی بالا. مستقیم از قائنات، خراسان جنوبی.",
+        285000, 340000, "خواربار ایرانی", "saffron.jpg",
+    ),
+    (
+        "پسته اکبری درجه یک، بسته ۵۰۰ گرمی",
+        "پسته اکبری درشت و تازه، برشته‌شده با نمک دریا. محصول رفسنجان.",
+        390000, None, "خواربار ایرانی", "pistachio.jpg",
+    ),
+    (
+        "گلاب قمصر کاشان، بطری ۴۰۰ میلی‌لیتری",
+        "گلاب دوآتیشه سنتی، عرق‌گیری‌شده از گل محمدی کاشان.",
+        85000, None, "خواربار ایرانی", "rosewater.jpg",
+    ),
+    (
+        "خرمای مضافتی درجه یک بم، ۱ کیلوگرم",
+        "خرمای مضافتی تازه و آبدار از نخلستان‌های بم، بدون افزودنی.",
+        145000, None, "خواربار ایرانی", "dates.jpg",
+    ),
+    (
+        "مغز گردوی دور سفید همدان، ۱ کیلوگرم",
+        "مغز گردوی تازه و روغنی، بدون خشک‌کردن صنعتی. محصول همدان.",
+        395000, 450000, "خواربار ایرانی", "walnuts.jpg",
+    ),
+    (
+        "چای احمد شکسته ممتاز، ۴۵۰ گرم",
+        "چای سیاه ممتاز با طعمی پررنگ و عطر ماندگار، بسته‌بندی خانواده.",
+        168000, None, "خواربار ایرانی", "tea.jpg",
+    ),
+    (
+        "هندزفری بی‌سیم JBL مدل T125BT",
+        "هندزفری بلوتوثی با باتری ۱۶ ساعته و کیفیت صدای باس‌دار JBL.",
+        1290000, 1590000, "موبایل و دیجیتال", "earbuds.jpg",
+    ),
+    (
+        "ساعت هوشمند اولترا، نمایشگر AMOLED",
+        "ساعت هوشمند با صفحه‌نمایش AMOLED، ردیاب ضربان قلب و GPS داخلی.",
+        29900000, None, "موبایل و دیجیتال", "smartwatch.jpg",
+    ),
+    (
+        "کفش اسپرت مردانه ایرمکس",
+        "کفش اسپرت سبک با کفی طبی و تهویه مناسب، مناسب پیاده‌روی روزانه.",
+        2450000, None, "مد و پوشاک", "shoes.jpg",
+    ),
+    (
+        "کوله پشتی چرم طبیعی، دست‌دوز تبریز",
+        "کوله پشتی چرم طبیعی دست‌دوز، مناسب لپ‌تاپ تا ۱۵ اینچ.",
+        3200000, 3850000, "مد و پوشاک", "backpack.jpg",
+    ),
+    (
+        "عطر مردانه امبروکسان ۱۹، حجم ۵۰ میلی‌لیتر",
+        "رایحه گرم و چوبی با ماندگاری بالا، مناسب استفاده روزانه.",
+        1850000, None, "زیبایی و سلامت", "perfume.jpg",
+    ),
+    (
+        "فرش دستباف قشقایی، طرح سنتی ۶ متری",
+        "فرش دستباف اصیل ایلی قشقایی، رنگ‌رزی گیاهی و بافت متراکم.",
+        12500000, 15000000, "صنایع‌دستی", "rug.jpg",
+    ),
 ]
 
 USERS = [
@@ -41,10 +90,11 @@ USERS = [
 def seed():
     db = get_db()
 
-    for name, description, price, category in PRODUCTS:
+    for name, description, price, original_price, category, image in PRODUCTS:
         db.execute(
-            "INSERT INTO products (name, description, price, category, image) VALUES (?, ?, ?, ?, ?)",
-            (name, description, price, category, "placeholder.svg"),
+            "INSERT INTO products (name, description, price, original_price, category, image) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (name, description, price, original_price, category, image),
         )
     db.commit()
 
@@ -57,37 +107,46 @@ def seed():
 
     alice_id = db.execute("SELECT id FROM users WHERE username = 'alice'").fetchone()["id"]
     bob_id = db.execute("SELECT id FROM users WHERE username = 'bob'").fetchone()["id"]
-    mouse_id = db.execute("SELECT id FROM products WHERE name = 'Wireless Mouse'").fetchone()["id"]
-    keyboard_id = db.execute("SELECT id FROM products WHERE name = 'Mechanical Keyboard'").fetchone()["id"]
+    saffron_id = db.execute(
+        "SELECT id FROM products WHERE name LIKE 'زعفران%'"
+    ).fetchone()["id"]
+    earbuds_id = db.execute(
+        "SELECT id FROM products WHERE name LIKE 'هندزفری%'"
+    ).fetchone()["id"]
+    watch_id = db.execute(
+        "SELECT id FROM products WHERE name LIKE 'ساعت هوشمند%'"
+    ).fetchone()["id"]
 
     db.execute(
-        "INSERT INTO reviews (product_id, user_id, username, body) VALUES (?, ?, ?, ?)",
-        (mouse_id, alice_id, "alice", "Works great, very responsive!"),
+        "INSERT INTO reviews (product_id, user_id, username, body, rating) VALUES (?, ?, ?, ?, ?)",
+        (saffron_id, alice_id, "alice", "کیفیت واقعا عالی بود، عطر زعفران به محض باز کردن بسته کل آشپزخانه رو پر کرد.", 5),
     )
     db.execute(
-        "INSERT INTO reviews (product_id, user_id, username, body) VALUES (?, ?, ?, ?)",
-        (keyboard_id, bob_id, "bob", "Loud but satisfying to type on."),
+        "INSERT INTO reviews (product_id, user_id, username, body, rating) VALUES (?, ?, ?, ?, ?)",
+        (earbuds_id, bob_id, "bob", "کیفیت صدا نسبت به قیمتش خیلی خوبه، فقط باتری کمی زودتر از حد انتظار تموم می‌شه.", 4),
     )
     db.commit()
 
+    # order 1 -> alice, order 2 -> bob (kept stable: INSTRUCTOR_GUIDE.md / STUDENT_LAB.md
+    # reference these exact IDs for the IDOR walkthrough).
     cur = db.execute(
         "INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'completed')",
-        (alice_id, 19.99),
+        (alice_id, 285000),
     )
     order1_id = cur.lastrowid
     db.execute(
         "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)",
-        (order1_id, mouse_id, 1, 19.99),
+        (order1_id, saffron_id, 1, 285000),
     )
 
     cur = db.execute(
         "INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'completed')",
-        (bob_id, 59.99),
+        (bob_id, 29900000),
     )
     order2_id = cur.lastrowid
     db.execute(
         "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)",
-        (order2_id, keyboard_id, 1, 59.99),
+        (order2_id, watch_id, 1, 29900000),
     )
     db.commit()
 
@@ -96,7 +155,7 @@ def seed():
     print("  users:")
     for username, _, password, role in USERS:
         print(f"    {username} / {password}  (role={role})")
-    print(f"  2 sample orders, 2 sample reviews")
+    print("  2 sample orders, 2 sample reviews")
 
 
 if __name__ == "__main__":

@@ -28,18 +28,49 @@ def create_user(username, email, password, role="customer"):
     db.commit()
 
 
+_RATED_PRODUCTS_SQL = """
+    SELECT p.*,
+           COALESCE(AVG(r.rating), 0) AS avg_rating,
+           COUNT(r.id) AS review_count
+    FROM products p
+    LEFT JOIN reviews r ON r.product_id = p.id
+    {where}
+    GROUP BY p.id
+    ORDER BY p.id
+"""
+
+
 def list_products(category=None):
     db = get_db()
     if category:
         return db.execute(
-            "SELECT * FROM products WHERE category = ? ORDER BY id", (category,)
+            _RATED_PRODUCTS_SQL.format(where="WHERE p.category = ?"), (category,)
         ).fetchall()
-    return db.execute("SELECT * FROM products ORDER BY id").fetchall()
+    return db.execute(_RATED_PRODUCTS_SQL.format(where="")).fetchall()
 
 
 def get_product(product_id):
     db = get_db()
-    return db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
+    return db.execute(
+        _RATED_PRODUCTS_SQL.format(where="WHERE p.id = ?"), (product_id,)
+    ).fetchone()
+
+
+def list_related_products(category, exclude_id, limit=4):
+    db = get_db()
+    return db.execute(
+        _RATED_PRODUCTS_SQL.format(where="WHERE p.category = ? AND p.id != ?") + " LIMIT ?",
+        (category, exclude_id, limit),
+    ).fetchall()
+
+
+def get_product_sold_count(product_id):
+    db = get_db()
+    row = db.execute(
+        "SELECT COALESCE(SUM(quantity), 0) AS sold FROM order_items WHERE product_id = ?",
+        (product_id,),
+    ).fetchone()
+    return row["sold"]
 
 
 def get_reviews(product_id):

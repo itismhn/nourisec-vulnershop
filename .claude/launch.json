@@ -6,6 +6,12 @@
       "runtimeExecutable": "env",
       "runtimeArgs": ["PORT=5050", ".venv/bin/python", "run.py"],
       "port": 5050
+    },
+    {
+      "name": "design-mockup-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8899", "--directory", "design-mockup"],
+      "port": 8899
     }
   ]
 }

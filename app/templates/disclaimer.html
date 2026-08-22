@@ -1,39 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Disclaimer - NouriSec VulnerShop{% endblock %}
+{% block title %}Disclaimer - نوری‌شاپ{% endblock %}
 {% block content %}
-<h1>Disclaimer &amp; Safety Notice</h1>
+<div class="card-block" style="max-width:760px; margin:20px auto; direction:ltr; text-align:left;">
+    <h1 style="font-family:'Vazirmatn'; font-size:24px;">Disclaimer &amp; Safety Notice</h1>
 
-<div class="alert alert-warning">{{ BANNER_TEXT }}</div>
+    <div class="alert alert-warning">{{ BANNER_TEXT }}</div>
 
-<h2>Purpose</h2>
-<p>
-    NouriSec VulnerShop is a deliberately vulnerable e-commerce application built solely for
-    hands-on penetration-testing education. It is used as a lab target in the paid NouriSec
-    training course, which follows the OWASP Web Security Testing Guide (WSTG) methodology and
-    the OWASP Top 10 (2021).
-</p>
+    <h2 style="font-size:17px;">Purpose</h2>
+    <p>
+        NouriShop / NouriSec VulnerShop is a deliberately vulnerable e-commerce application built solely for
+        hands-on penetration-testing education. It is used as a lab target in the paid NouriSec
+        training course, which follows the OWASP Web Security Testing Guide (WSTG) methodology and
+        the OWASP Top 10 (2021).
+    </p>
 
-<h2>Scope of authorized testing</h2>
-<p>
-    Authorized testing is limited to <strong>this application only</strong>, running in your own
-    isolated lab environment (local machine, Docker container, or a private VPS behind a firewall
-    that you control). You are not authorized to use any technique demonstrated here against any
-    other system, service, or organization. Do not attack systems you do not own or do not have
-    explicit written permission to test.
-</p>
+    <h2 style="font-size:17px;">Scope of authorized testing</h2>
+    <p>
+        Authorized testing is limited to <strong>this application only</strong>, running in your own
+        isolated lab environment (local machine, Docker container, or a private VPS behind a firewall
+        that you control). You are not authorized to use any technique demonstrated here against any
+        other system, service, or organization. Do not attack systems you do not own or do not have
+        explicit written permission to test.
+    </p>
 
-<h2>No real data</h2>
-<p>
-    Every account, product, order, and message in this application is fake and seeded by a
-    script. <strong>Never enter real personal information, real passwords, or real payment
-    details</strong> anywhere in this app, even though the storefront is designed to look
-    realistic.
-</p>
+    <h2 style="font-size:17px;">No real data</h2>
+    <p>
+        Every account, product, order, and message in this application is fake and seeded by a
+        script. <strong>Never enter real personal information, real passwords, or real payment
+        details</strong> anywhere in this app, even though the storefront is designed to look
+        realistic (including the Persian/Iranian storefront theme and NouriSec cross-promotion banners).
+    </p>
 
-<h2>Resetting the lab</h2>
-<p>
-    Run <code>python scripts/reset_db.py</code> (or use the "Reset Database" button in the admin
-    panel) at any time to wipe the database and restore the original seeded state, so multiple
-    students can practice repeatedly.
-</p>
+    <h2 style="font-size:17px;">Resetting the lab</h2>
+    <p>
+        Run <code>python scripts/reset_db.py</code> (or use the "Reset Database" button in the admin
+        panel) at any time to wipe the database and restore the original seeded state, so multiple
+        students can practice repeatedly.
+    </p>
+</div>
 {% endblock %}
