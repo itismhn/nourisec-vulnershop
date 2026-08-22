@@ -1,106 +1,84 @@
 # NouriSec VulnerShop
 
-⚠️ **EDUCATIONAL / INTENTIONALLY VULNERABLE APPLICATION — NouriSec Training Lab.**
-This site contains deliberate security flaws for authorized learning only. Do **not** enter
-real personal data, real passwords, or real payment details. Do **not** attack any system you
-are not explicitly authorized to test.
+A fake online store (Persian-themed storefront, "نوری‌شاپ") built with intentional
+security bugs, used as the hands-on lab for the NouriSec pentesting course. Every
+product, user, and order is fake and seeded by a script — nothing here is a real store.
 
-## What this is
+## Run it
 
-VulnerShop is a realistic-looking (but entirely fake) online store, deliberately built with a
-set of OWASP Top 10 (2021) vulnerabilities mapped to OWASP WSTG test IDs. It's the hands-on lab
-target for the NouriSec penetration-testing course: students go recon → exploit → remediate →
-report against a target they're fully authorized to attack, because it's this one.
-
-Every product, user, order, and review is fake, seeded by a script. Nothing here talks to a
-real payment gateway, a real email provider, or the real internet in any meaningful way.
-
-See [`/disclaimer`](app/templates/disclaimer.html) (also linked in the footer of every page) for
-the full safety notice, and [`STUDENT_LAB.md`](STUDENT_LAB.md) for the staged challenges.
-
-## Stack
-
-Flask + SQLite + Jinja2 + Bootstrap. Single Python process, no frontend build step, zero
-external database service. This keeps the entire attack surface readable top-to-bottom in a
-handful of files, which matters more here than performance or scalability ever would.
-
-## ⚠️ Run this in an isolated environment only
-
-This is not a real store and must never be deployed as one. Specifically:
-
-- Run it **only** via the provided Docker Compose setup, on a machine/network you control
-  (a local laptop, an isolated VM, or a private VPS behind a firewall with no public exposure).
-- The default `docker-compose.yml` publishes the app only to `127.0.0.1:5000` on the host, and
-  attaches the container to an `internal: true` Docker network so it **cannot make outbound
-  connections to the real internet**. This matters because two of the intentional
-  vulnerabilities (command injection in the admin "ping" tool, and SSRF in "fetch image by URL")
-  let a user make the *server* issue commands/requests — the network isolation is what keeps
-  those contained to this sandbox instead of becoming a launchpad against real third parties.
-- Never remove the `internal: true` line, never add other services to `vulnershop_net`, and
-  never bridge this network to your real LAN/Wi-Fi.
-- If you run it outside Docker (`python run.py` directly on your machine, for convenience while
-  developing the lab itself) those two modules are **not sandboxed** — they'll execute real
-  shell commands and real outbound HTTP requests on your actual machine. Only do this on a
-  disposable machine/VM you don't mind touching.
-
-## One-command run
+**Docker (recommended):**
 
 ```bash
 docker compose up --build
 ```
 
-Then open <http://127.0.0.1:5000>. The container seeds the database automatically on first boot.
+Open <http://127.0.0.1:5000>. The database seeds itself automatically on first boot.
 
-## Running locally without Docker (dev/testing only)
+**Or locally, without Docker:**
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python scripts/reset_db.py   # creates + seeds the database
-python run.py                # http://127.0.0.1:5000
+python scripts/reset_db.py
+python run.py
 ```
 
-## Seeded accounts
+Open <http://127.0.0.1:5000> (or set `PORT=5050` before `python run.py` if 5000 is
+already taken, e.g. by macOS AirPlay).
 
-All fake. All documented here on purpose — some are meant to be found by students, others
-are meant to be *guessed or cracked*, per the lab design (see `STUDENT_LAB.md`).
+## Test accounts
 
-| Username     | Password      | Role     | Notes |
-|--------------|---------------|----------|-------|
-| `admin`      | `admin123`    | admin    | Default/predictable admin creds (WSTG-ATHN-02) |
-| `alice`      | `Password1`   | customer | |
-| `bob`        | `Password1`   | customer | |
-| `svc_backup` | `password123` | admin    | Leftover service account, also leaked (as an MD5 hash) via `/backup/app_backup.sql` |
+| Username     | Password      | Role     |
+|--------------|---------------|----------|
+| `admin`      | `admin123`    | admin    |
+| `alice`      | `Password1`   | customer |
+| `bob`        | `Password1`   | customer |
+| `svc_backup` | `password123` | admin    |
 
-## Resetting the lab
+## How to test it
 
-Multiple students can practice against a clean state at any time:
+Open [`STUDENT_LAB.md`](STUDENT_LAB.md) — it's a staged checklist of what to try, in
+order (recon first, then login, then everything else). No answers, just hints, so you
+actually practice finding things.
+
+If you just want to see something work right away, try this in the login form:
+
+```
+username: ' OR '1'='1' --
+password: (anything)
+```
+
+That logs you in as `admin` with no real password — a SQL injection bug in the login
+query. From there, `STUDENT_LAB.md` walks through the rest (XSS, IDOR, CSRF, and more).
+Stuck on one? [`VULN_TIPS.md`](VULN_TIPS.md) has a short nudge and the exact steps to
+trigger each bug, without spoiling the fix.
+
+When you're done (or want a clean slate for someone else), reset everything:
 
 ```bash
 python scripts/reset_db.py
 ```
 
-or click **Reset Database** on the admin dashboard (`/admin`) while logged in — reachable by any
-logged-in account, not just admins, which is itself one of the intentional vulnerabilities.
+or click **Reset Database** in the admin panel (`/admin`) while logged in.
 
-## Repository layout
+## Docs
 
-```
-app/                Flask application (blueprints, templates, static assets)
-scripts/seed.py      Populates fake products/users/orders/reviews
-scripts/reset_db.py  Wipes + reseeds the database
-backup/              Intentionally web-accessible old DB dump (misconfig lesson)
-robots.txt           Disallows all crawlers (also lists interesting paths on purpose)
-Dockerfile, docker-compose.yml, docker-entrypoint.sh
-INSTRUCTOR_GUIDE.md   Full vuln map + exploitation walkthroughs + fixes (instructor-only)
-STUDENT_LAB.md        Staged challenges, hints only, no answers
-REPORT_TEMPLATE.md    Pentest report template for students to fill in
-```
+- [`STUDENT_LAB.md`](STUDENT_LAB.md) — what to test, hints only.
+- [`VULN_TIPS.md`](VULN_TIPS.md) — stuck on one? A short tip plus the exact steps to
+  trigger each bug (still no fixes — those stay in the instructor guide).
+- [`INSTRUCTOR_GUIDE.md`](INSTRUCTOR_GUIDE.md) — the answer key: exact location, root
+  cause, and fix for every bug. Don't peek before you've tried.
+- [`REPORT_TEMPLATE.md`](REPORT_TEMPLATE.md) — a template for writing up findings like a
+  real pentest report.
+- [`/disclaimer`](app/templates/disclaimer.html) — full safety notice and scope, also
+  linked in the footer of every page.
 
-## Documentation map
+## A few things worth knowing
 
-- **Students:** start with [`STUDENT_LAB.md`](STUDENT_LAB.md) and [`REPORT_TEMPLATE.md`](REPORT_TEMPLATE.md).
-- **Instructors:** [`INSTRUCTOR_GUIDE.md`](INSTRUCTOR_GUIDE.md) has the answer key — every
-  vulnerability's exact location, root cause, PoC, and the correct secure-code fix. Don't share
-  it with students before they've had a real attempt.
+- This is for learning on your own machine, not for exposing on the internet. It's not
+  authorized for testing against anything other than itself.
+- Two of the bugs (the admin "ping" tool and "fetch image by URL") make the *server*
+  run commands / make requests. Docker Compose keeps the container off the real
+  internet (`internal: true` network) so these stay contained. If you run it outside
+  Docker, they run for real on your machine — only do that on a disposable box.

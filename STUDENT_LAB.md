@@ -11,7 +11,9 @@ you write it all up. Each item gives you a hint, not the answer — the goal is 
 things, not to copy a payload. When you find something, log it (target, steps, evidence) so you
 can carry it straight into `REPORT_TEMPLATE.md` at the end.
 
-Don't skip ahead to `INSTRUCTOR_GUIDE.md` — it's the answer key and will spoil the exercise.
+Truly stuck on one? [`VULN_TIPS.md`](VULN_TIPS.md) gives a bit more — a concrete nudge
+and the exact steps to trigger the bug — without spoiling the fix. Don't skip ahead to
+`INSTRUCTOR_GUIDE.md` though — it's the full answer key and will spoil the exercise.
 
 ---
 
