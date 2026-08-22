@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order['id'] }} - NouriSec VulnerShop{% endblock %}
+{% block content %}
+<h1>Order #{{ order['id'] }}</h1>
+<p>Placed by user ID: {{ order['user_id'] }} &middot; Status: {{ order['status'] }} &middot; Total: ${{ "%.2f"|format(order['total']) }}</p>
+<table class="table">
+    <thead><tr><th>Product</th><th>Qty</th><th>Price</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td>{{ item['product_name'] }}</td>
+            <td>{{ item['quantity'] }}</td>
+            <td>${{ "%.2f"|format(item['price']) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

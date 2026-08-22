@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  vulnershop:
+    build: .
+    container_name: nourisec-vulnershop
+    ports:
+      # Bind to loopback only by default - this app is meant for an isolated
+      # lab, never for exposure on a shared or public network. Change the
+      # left-hand side only if you fully understand the risk (see README).
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - vulnershop_db:/app/instance
+      - vulnershop_uploads:/app/app/uploads
+    networks:
+      - vulnershop_net
+    # No other services, no external egress required by the app itself.
+    # The command-injection (/admin/ping) and SSRF (/admin/fetch-image)
+    # training modules are only "safe" because this container has nothing
+    # else to reach on this network - do not add other services to it and
+    # do not attach this network to your host's real LAN.
+
+networks:
+  vulnershop_net:
+    driver: bridge
+    internal: true  # blocks outbound internet access entirely - required so the
+                    # command-injection and SSRF modules cannot reach real hosts
+
+volumes:
+  vulnershop_db:
+  vulnershop_uploads:

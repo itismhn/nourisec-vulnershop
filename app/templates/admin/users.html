@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Admin - Users{% endblock %}
+{% block content %}
+<h1>Users</h1>
+<table class="table">
+    <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Password Hash</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+        <tr>
+            <td>{{ u['id'] }}</td>
+            <td>{{ u['username'] }}</td>
+            <td>{{ u['email'] }}</td>
+            <td>{{ u['role'] }}</td>
+            <td><code>{{ u['password_hash'] }}</code></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

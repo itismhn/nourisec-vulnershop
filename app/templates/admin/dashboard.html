@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+<div class="row g-3 mb-4">
+    <div class="col"><div class="card p-3">Users: {{ counts.users }}</div></div>
+    <div class="col"><div class="card p-3">Products: {{ counts.products }}</div></div>
+    <div class="col"><div class="card p-3">Orders: {{ counts.orders }}</div></div>
+</div>
+<ul class="list-group mb-4" style="max-width: 400px;">
+    <li class="list-group-item"><a href="{{ url_for('admin.users') }}">Manage Users</a></li>
+    <li class="list-group-item"><a href="{{ url_for('admin.products') }}">Manage Products</a></li>
+    <li class="list-group-item"><a href="{{ url_for('admin.orders') }}">View Orders</a></li>
+    <li class="list-group-item"><a href="{{ url_for('admin.ping') }}">Server Health Check</a></li>
+    <li class="list-group-item"><a href="{{ url_for('admin.fetch_image') }}">Fetch Product Image by URL</a></li>
+</ul>
+<form method="post" action="{{ url_for('admin.reset') }}" onsubmit="return confirm('Reset the database to the seeded state?');">
+    <button class="btn btn-danger">Reset Database</button>
+</form>
+{% endblock %}

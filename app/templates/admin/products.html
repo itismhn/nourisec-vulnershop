@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Admin - Products{% endblock %}
+{% block content %}
+<h1>Products</h1>
+<form method="post" class="row g-2 mb-4">
+    <div class="col-auto"><input name="name" class="form-control" placeholder="Name"></div>
+    <div class="col-auto"><input name="category" class="form-control" placeholder="Category"></div>
+    <div class="col-auto"><input name="price" class="form-control" placeholder="Price" type="number" step="0.01"></div>
+    <div class="col"><input name="description" class="form-control" placeholder="Description"></div>
+    <div class="col-auto"><button class="btn btn-primary">Add</button></div>
+</form>
+<table class="table">
+    <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
+    <tbody>
+    {% for p in products %}
+        <tr>
+            <td>{{ p['id'] }}</td>
+            <td>{{ p['name'] }}</td>
+            <td>{{ p['category'] }}</td>
+            <td>${{ "%.2f"|format(p['price']) }}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin.delete_product', product_id=p['id']) }}">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

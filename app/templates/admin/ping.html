@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Admin - Server Health Check{% endblock %}
+{% block content %}
+<h1>Server Health Check</h1>
+<p class="text-muted">Ping an internal host to check connectivity.</p>
+<form method="post" class="mb-3" style="max-width:400px;">
+    <div class="input-group">
+        <input type="text" name="host" class="form-control" value="{{ host }}" placeholder="127.0.0.1">
+        <button class="btn btn-primary">Ping</button>
+    </div>
+</form>
+{% if output %}
+<pre class="bg-dark text-light p-3">{{ output }}</pre>
+{% endif %}
+{% endblock %}

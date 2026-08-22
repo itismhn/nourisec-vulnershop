@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Profile - NouriSec VulnerShop{% endblock %}
+{% block content %}
+<h1>Profile: {{ profile_user['username'] }}</h1>
+<p>Email: {{ profile_user['email'] }}</p>
+<p>Role: {{ profile_user['role'] }}</p>
+
+{% if session.get('user_id') == profile_user['id'] %}
+<hr>
+<h3>Account Settings</h3>
+<form method="post" action="{{ url_for('account.change_email') }}" class="mb-3" style="max-width:400px;">
+    <label class="form-label">Change email</label>
+    <div class="input-group">
+        <input type="email" name="email" class="form-control" value="{{ profile_user['email'] }}">
+        <button class="btn btn-outline-primary">Update</button>
+    </div>
+</form>
+<form method="post" action="{{ url_for('account.change_password') }}" class="mb-3" style="max-width:400px;">
+    <label class="form-label">Change password</label>
+    <div class="input-group">
+        <input type="password" name="password" class="form-control">
+        <button class="btn btn-outline-primary">Update</button>
+    </div>
+</form>
+<form method="post" action="{{ url_for('uploads.upload_avatar') }}" enctype="multipart/form-data" class="mb-3" style="max-width:400px;">
+    <label class="form-label">Upload avatar</label>
+    <div class="input-group">
+        <input type="file" name="avatar" class="form-control">
+        <button class="btn btn-outline-primary">Upload</button>
+    </div>
+</form>
+{% endif %}
+
+<h3>Orders</h3>
+<ul>
+{% for order in orders %}
+    <li><a href="{{ url_for('account.order_detail', order_id=order['id']) }}">Order #{{ order['id'] }} - ${{ "%.2f"|format(order['total']) }}</a></li>
+{% else %}
+    <li class="text-muted">No orders yet.</li>
+{% endfor %}
+</ul>
+{% endblock %}

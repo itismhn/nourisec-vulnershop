@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Cart - NouriSec VulnerShop{% endblock %}
+{% block content %}
+<h1>Your Cart</h1>
+{% if items %}
+<table class="table">
+    <thead><tr><th>Product</th><th>Qty</th><th>Subtotal</th><th></th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td>{{ item.product['name'] }}</td>
+            <td>{{ item.qty }}</td>
+            <td>${{ "%.2f"|format(item.subtotal) }}</td>
+            <td>
+                <form method="post" action="{{ url_for('shop.cart_remove', product_id=item.product['id']) }}">
+                    <button class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p class="fs-4">Total: ${{ "%.2f"|format(total) }}</p>
+<a href="{{ url_for('shop.checkout') }}" class="btn btn-success">Checkout</a>
+{% else %}
+<p class="text-muted">Your cart is empty.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+.vuln-banner {
+    background: #b30000;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    padding: 10px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+    font-size: 0.95rem;
+}
+
+body {
+    padding-bottom: 2rem;
+}

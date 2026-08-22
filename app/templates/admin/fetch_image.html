@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Admin - Fetch Product Image{% endblock %}
+{% block content %}
+<h1>Fetch Product Image by URL</h1>
+<p class="text-muted">Paste a URL and the server will download the image for you.</p>
+<form method="post" class="mb-3" style="max-width:500px;">
+    <div class="input-group">
+        <input type="text" name="url" class="form-control" value="{{ url }}" placeholder="http://...">
+        <button class="btn btn-primary">Fetch</button>
+    </div>
+</form>
+{% if error %}
+<div class="alert alert-secondary">{{ error }}</div>
+{% endif %}
+{% if fetched_path %}
+<p>Saved to: <code>{{ fetched_path }}</code></p>
+<img src="{{ fetched_path }}" class="img-fluid" style="max-width:300px;">
+{% endif %}
+{% endblock %}

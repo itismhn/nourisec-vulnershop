@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Search - NouriSec VulnerShop{% endblock %}
+{% block content %}
+<!-- VULN: Reflected XSS (WSTG-INPV-01) - the raw search term is rendered with |safe -->
+<h1>Search results for: {{ query|safe }}</h1>
+
+{% if error %}
+<div class="alert alert-secondary">
+    <strong>Debug info:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for product in results %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ product['name'] }}</h5>
+                <p class="card-text">{{ product['description'] }}</p>
+                <p class="fw-bold">${{ "%.2f"|format(product['price']) if product['price'] is number else product['price'] }}</p>
+                {% if product['id'] %}
+                <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}" class="btn btn-primary">View</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-muted">No products matched your search.</p>
+    {% endfor %}
+</div>
+{% endblock %}
