@@ -82,3 +82,7 @@ or click **Reset Database** in the admin panel (`/admin`) while logged in.
   run commands / make requests. Docker Compose keeps the container off the real
   internet (`internal: true` network) so these stay contained. If you run it outside
   Docker, they run for real on your machine — only do that on a disposable box.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE). Use it, fork it, run your own training sessions with it.
