@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.db import get_db
+from app.i18n import t
 from app.models import get_order, get_order_items, get_orders_for_user, get_user_by_id, hash_password
 
 account_bp = Blueprint("account", __name__)
@@ -27,7 +28,7 @@ def profile(user_id):
     # other user's profile by changing the number in the URL.
     user = get_user_by_id(user_id)
     if not user:
-        flash("کاربر مورد نظر پیدا نشد.", "warning")
+        flash(t("account.flash_user_not_found"), "warning")
         return redirect(url_for("shop.index"))
 
     orders = get_orders_for_user(user_id)
@@ -51,7 +52,7 @@ def order_detail(order_id):
     # session["user_id"]. Incrementing the ID in the URL reveals other customers' orders.
     order = get_order(order_id)
     if not order:
-        flash("سفارش مورد نظر پیدا نشد.", "warning")
+        flash(t("account.flash_order_not_found"), "warning")
         return redirect(url_for("account.orders"))
 
     items = get_order_items(order_id)
@@ -70,7 +71,7 @@ def change_email():
     db = get_db()
     db.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, session["user_id"]))
     db.commit()
-    flash("ایمیل با موفقیت به‌روزرسانی شد.", "success")
+    flash(t("account.flash_email_updated"), "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))
 
 
@@ -88,5 +89,5 @@ def change_password():
         (hash_password(new_password), session["user_id"]),
     )
     db.commit()
-    flash("رمز عبور با موفقیت به‌روزرسانی شد.", "success")
+    flash(t("account.flash_password_updated"), "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))

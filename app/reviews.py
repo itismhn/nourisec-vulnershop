@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, request, session, url_for
 
 from app.db import get_db
+from app.i18n import t
 
 reviews_bp = Blueprint("reviews", __name__)
 
@@ -8,7 +9,7 @@ reviews_bp = Blueprint("reviews", __name__)
 @reviews_bp.route("/product/<int:product_id>/review", methods=["POST"])
 def add_review(product_id):
     if "user_id" not in session:
-        flash("برای ثبت نظر ابتدا وارد حساب کاربری خود شوید.", "warning")
+        flash(t("reviews.flash_login_to_review"), "warning")
         return redirect(url_for("auth.login"))
 
     body = request.form.get("body", "")
@@ -23,5 +24,5 @@ def add_review(product_id):
         (product_id, session["user_id"], session["username"], body, rating),
     )
     db.commit()
-    flash("نظر شما با موفقیت ثبت شد.", "success")
+    flash(t("reviews.flash_review_submitted"), "success")
     return redirect(url_for("shop.product_detail", product_id=product_id))

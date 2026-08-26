@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}سفارش‌های من - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('orders.title') }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">سفارش‌های من</h1>
+<h1 class="page-title">{{ t('orders.title') }}</h1>
 <div class="card-block">
     <ul style="list-style:none; padding:0; margin:0;">
     {% for order in orders %}
         <li style="padding:12px 0; border-bottom:1px solid var(--line);">
-            <a href="{{ url_for('account.order_detail', order_id=order['id']) }}">سفارش #{{ order['id']|fanum }} - {{ order['total']|toman }} تومان - {{ order['status'] }}</a>
+            <a href="{{ url_for('account.order_detail', order_id=order['id']) }}">{{ t('orders.order_link', id=order['id']|fanum, total=order['total']|toman, currency=t('currency.toman'), status=order['status']) }}</a>
         </li>
     {% else %}
-        <li style="color:var(--ink-soft);">هنوز سفارشی ثبت نشده.</li>
+        <li style="color:var(--ink-soft);">{{ t('profile.no_orders') }}</li>
     {% endfor %}
     </ul>
 </div>

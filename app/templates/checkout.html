@@ -1,24 +1,24 @@
 {% extends "base.html" %}
-{% block title %}پرداخت - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('checkout.title') }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">تسویه حساب</h1>
-<div class="alert alert-info" style="max-width:480px;">این یک پرداخت آزمایشی برای اهداف آموزشی است. هیچ مبلغ واقعی کسر نمی‌شود - لطفا اطلاعات کارت واقعی وارد نکنید.</div>
+<h1 class="page-title">{{ t('checkout.title') }}</h1>
+<div class="alert alert-info" style="max-width:480px;">{{ t('checkout.info_alert') }}</div>
 
 <form method="post" class="form-page" style="margin:20px 0;">
     <div class="field">
-        <label>شماره کارت (آزمایشی)</label>
-        <input type="text" placeholder="۱۲۳۴ ۵۶۷۸ ۹۰۱۲ ۳۴۵۶">
+        <label>{{ t('checkout.card_number') }}</label>
+        <input type="text" placeholder="{{ '1234 5678 9012 3456' if locale == 'en' else '۱۲۳۴ ۵۶۷۸ ۹۰۱۲ ۳۴۵۶' }}">
     </div>
     <div style="display:flex; gap:12px;">
         <div class="field" style="flex:1;">
-            <label>تاریخ انقضا (آزمایشی)</label>
-            <input type="text" placeholder="۰۴/۰۶">
+            <label>{{ t('checkout.expiry') }}</label>
+            <input type="text" placeholder="{{ '04/06' if locale == 'en' else '۰۴/۰۶' }}">
         </div>
         <div class="field" style="flex:1;">
-            <label>CVV2 (آزمایشی)</label>
-            <input type="text" placeholder="۱۲۳">
+            <label>{{ t('checkout.cvv') }}</label>
+            <input type="text" placeholder="{{ '123' if locale == 'en' else '۱۲۳' }}">
         </div>
     </div>
-    <button type="submit" class="btn btn-primary btn-block">ثبت سفارش آزمایشی</button>
+    <button type="submit" class="btn btn-primary btn-block">{{ t('checkout.submit') }}</button>
 </form>
 {% endblock %}

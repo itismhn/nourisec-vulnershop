@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}دریافت تصویر محصول{% endblock %}
+{% block title %}{{ t('admin.fetch_image_title') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">دریافت تصویر محصول از URL</h1>
-<p style="color:var(--ink-soft);">یک آدرس وارد کنید تا سرور تصویر را دانلود کند.</p>
+<h1 class="page-title">{{ t('admin.fetch_image_title') }}</h1>
+<p style="color:var(--ink-soft);">{{ t('admin.fetch_image_desc') }}</p>
 <form method="post" class="card-block" style="max-width:520px; display:flex; gap:8px; margin-bottom:20px;">
     <input type="text" name="url" value="{{ url }}" placeholder="http://..." style="flex:1; border:1.5px solid var(--line); border-radius:10px; padding:11px 14px; font-family:inherit; direction:ltr;">
-    <button class="btn btn-primary">دریافت</button>
+    <button class="btn btn-primary">{{ t('admin.fetch_btn') }}</button>
 </form>
 {% if error %}
 <div class="alert alert-info" style="direction:ltr; text-align:left; font-family:monospace;">{{ error }}</div>
 {% endif %}
 {% if fetched_path %}
-<p>ذخیره شد در: <code style="direction:ltr; display:inline-block;">{{ fetched_path }}</code></p>
+<p>{{ t('admin.saved_to') }} <code style="direction:ltr; display:inline-block;">{{ fetched_path }}</code></p>
 <img src="{{ fetched_path }}" style="max-width:300px; border-radius:12px;">
 {% endif %}
 {% endblock %}

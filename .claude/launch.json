@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "vulnershop-flask",
-      "runtimeExecutable": "env",
-      "runtimeArgs": ["PORT=5050", ".venv/bin/python", "run.py"],
-      "port": 5050
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["run.py"],
+      "port": 5000,
+      "autoPort": true
     },
     {
       "name": "design-mockup-preview",

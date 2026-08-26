@@ -4,6 +4,7 @@ import time
 from flask import Blueprint, current_app, flash, redirect, request, session, url_for
 
 from app.db import get_db
+from app.i18n import t
 
 uploads_bp = Blueprint("uploads", __name__)
 
@@ -23,16 +24,16 @@ def _extension_allowed(filename):
 @uploads_bp.route("/account/avatar", methods=["POST"])
 def upload_avatar():
     if "user_id" not in session:
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
 
     file = request.files.get("avatar")
     if not file or file.filename == "":
-        flash("فایلی انتخاب نشده است.", "warning")
+        flash(t("uploads.flash_no_file"), "warning")
         return redirect(url_for("account.profile", user_id=session["user_id"]))
 
     if not _extension_allowed(file.filename):
-        flash("این نوع فایل مجاز نیست.", "danger")
+        flash(t("uploads.flash_file_type_not_allowed"), "danger")
         return redirect(url_for("account.profile", user_id=session["user_id"]))
 
     # basename() only, to keep this sandboxed to the uploads folder - the
@@ -46,5 +47,5 @@ def upload_avatar():
     db.execute("UPDATE users SET avatar = ? WHERE id = ?", (stored_name, session["user_id"]))
     db.commit()
 
-    flash("تصویر پروفایل به‌روزرسانی شد.", "success")
+    flash(t("uploads.flash_avatar_updated"), "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))

@@ -3,12 +3,12 @@
 {% block content %}
 <div class="card-block" style="max-width:600px; margin:30px auto;">
     <h1 style="font-size:20px;">Debug: Last Password Reset</h1>
-    <p style="color:var(--ink-soft); font-size:13px;">(این صفحه دیباگ نباید در نسخه واقعی وجود داشته باشد.)</p>
+    <p style="color:var(--ink-soft); font-size:13px;">{{ t('dev.debug_notice') }}</p>
     {% if link %}
-    <p>آخرین درخواست بازیابی برای کاربر: <strong>{{ username }}</strong></p>
-    <p>لینک: <code style="direction:ltr; display:inline-block;">{{ link }}</code></p>
+    <p>{{ t('dev.last_request_for') }} <strong>{{ username }}</strong></p>
+    <p>{{ t('dev.link_label') }} <code style="direction:ltr; display:inline-block;">{{ link }}</code></p>
     {% else %}
-    <p>هنوز درخواست بازیابی رمزی ثبت نشده است.</p>
+    <p>{{ t('dev.no_request_yet') }}</p>
     {% endif %}
 </div>
 {% endblock %}

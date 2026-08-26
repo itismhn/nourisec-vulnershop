@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}مدیریت کاربران{% endblock %}
+{% block title %}{{ t('admin.manage_users') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">کاربران</h1>
+<h1 class="page-title">{{ t('admin.users_title') }}</h1>
 <div class="card-block" style="padding:0; overflow-x:auto;">
     <table class="table-clean" style="margin:0; min-width:600px;">
-        <thead><tr><th style="padding-right:18px;">شناسه</th><th>نام کاربری</th><th>ایمیل</th><th>نقش</th><th>هش رمز عبور</th></tr></thead>
+        <thead><tr><th style="padding-right:18px;">{{ t('admin.col_id') }}</th><th>{{ t('admin.col_username') }}</th><th>{{ t('admin.col_email') }}</th><th>{{ t('admin.col_role') }}</th><th>{{ t('admin.col_password_hash') }}</th></tr></thead>
         <tbody>
         {% for u in users %}
             <tr>

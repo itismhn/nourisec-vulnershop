@@ -3,6 +3,7 @@ import hashlib
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.db import get_db
+from app.i18n import t
 from app.models import create_user, get_user_by_id, get_user_by_username, hash_password
 
 auth_bp = Blueprint("auth", __name__)
@@ -21,15 +22,15 @@ def register():
 
         # VULN: Broken Authentication - no password complexity/length policy (WSTG-ATHN-07)
         if not username or not password:
-            flash("نام کاربری و رمز عبور الزامی است.", "danger")
+            flash(t("auth.flash_username_password_required"), "danger")
             return render_template("register.html")
 
         if get_user_by_username(username):
-            flash("این نام کاربری قبلا استفاده شده است.", "danger")
+            flash(t("auth.flash_username_taken"), "danger")
             return render_template("register.html")
 
         create_user(username, email, password)
-        flash("حساب کاربری شما ساخته شد. اکنون می‌توانید وارد شوید.", "success")
+        flash(t("auth.flash_account_created"), "success")
         return redirect(url_for("auth.login"))
 
     return render_template("register.html")
@@ -63,10 +64,10 @@ def login():
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["role"] = user["role"]
-            flash(f"خوش آمدید، {user['username']}!", "success")
+            flash(t("auth.flash_welcome", username=user["username"]), "success")
             return redirect(url_for("shop.index"))
 
-        flash("نام کاربری یا رمز عبور اشتباه است.", "danger")
+        flash(t("auth.flash_invalid_login"), "danger")
         return render_template("login.html")
 
     return render_template("login.html")
@@ -75,7 +76,7 @@ def login():
 @auth_bp.route("/logout")
 def logout():
     session.clear()
-    flash("از حساب کاربری خود خارج شدید.", "info")
+    flash(t("auth.flash_logged_out"), "info")
     return redirect(url_for("shop.index"))
 
 
@@ -98,10 +99,7 @@ def forgot_password():
             LAST_RESET["link"] = reset_link
             LAST_RESET["username"] = username
 
-        flash(
-            "در صورت وجود این حساب کاربری، لینک بازیابی رمز عبور به ایمیل ثبت‌شده ارسال شد.",
-            "info",
-        )
+        flash(t("auth.flash_reset_link_sent"), "info")
         return redirect(url_for("auth.login"))
 
     return render_template("forgot_password.html")
@@ -112,7 +110,7 @@ def reset_password(token):
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE reset_token = ?", (token,)).fetchone()
     if not user:
-        flash("لینک بازیابی نامعتبر یا منقضی شده است.", "danger")
+        flash(t("auth.flash_reset_invalid"), "danger")
         return redirect(url_for("auth.login"))
 
     if request.method == "POST":
@@ -122,7 +120,7 @@ def reset_password(token):
             (hash_password(new_password), user["id"]),
         )
         db.commit()
-        flash("رمز عبور با موفقیت تغییر کرد. لطفا وارد شوید.", "success")
+        flash(t("auth.flash_password_changed"), "success")
         return redirect(url_for("auth.login"))
 
     return render_template("reset_password.html", token=token)

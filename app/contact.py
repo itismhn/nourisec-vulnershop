@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from app.db import get_db
+from app.i18n import t
 
 contact_bp = Blueprint("contact", __name__)
 
@@ -17,6 +18,6 @@ def contact():
             (name, email, message),
         )
         db.commit()
-        flash("پیام شما ثبت شد - تیم پشتیبانی (آزمایشی) به‌زودی پاسخ می‌دهد.", "success")
+        flash(t("contact.flash_message_sent"), "success")
         return redirect(url_for("contact.contact"))
     return render_template("contact.html")

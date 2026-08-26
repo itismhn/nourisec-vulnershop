@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}سفارش #{{ order['id'] }} - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('order_detail.title', id=order['id']) }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">سفارش #{{ order['id']|fanum }}</h1>
-<p style="color:var(--ink-soft);">مربوط به کاربر شماره {{ order['user_id']|fanum }} · وضعیت: {{ order['status'] }} · مبلغ کل: {{ order['total']|toman }} تومان</p>
+<h1 class="page-title">{{ t('order_detail.title', id=order['id']|fanum) }}</h1>
+<p style="color:var(--ink-soft);">{{ t('order_detail.subtitle', user_id=order['user_id']|fanum, status=order['status'], total=order['total']|toman, currency=t('currency.toman')) }}</p>
 <div class="card-block" style="padding:0;">
     <table class="table-clean" style="margin:0;">
-        <thead><tr><th style="padding:14px 18px;">محصول</th><th>تعداد</th><th>قیمت</th></tr></thead>
+        <thead><tr><th style="padding:14px 18px;">{{ t('order_detail.product_col') }}</th><th>{{ t('order_detail.qty_col') }}</th><th>{{ t('order_detail.price_col') }}</th></tr></thead>
         <tbody>
         {% for item in items %}
             <tr>
                 <td style="padding-right:18px;">{{ item['product_name'] }}</td>
                 <td>{{ item['quantity']|fanum }}</td>
-                <td>{{ item['price']|toman }} تومان</td>
+                <td>{{ item['price']|toman }} {{ t('currency.toman') }}</td>
             </tr>
         {% endfor %}
         </tbody>

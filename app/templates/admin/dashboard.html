@@ -1,20 +1,20 @@
 {% extends "base.html" %}
-{% block title %}پنل مدیریت{% endblock %}
+{% block title %}{{ t('admin.panel_title') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">پنل مدیریت</h1>
+<h1 class="page-title">{{ t('admin.panel_title') }}</h1>
 <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
-    <div class="card-block">کاربران: {{ counts.users|fanum }}</div>
-    <div class="card-block">محصولات: {{ counts.products|fanum }}</div>
-    <div class="card-block">سفارش‌ها: {{ counts.orders|fanum }}</div>
+    <div class="card-block">{{ t('admin.users_count', count=counts.users|fanum) }}</div>
+    <div class="card-block">{{ t('admin.products_count', count=counts.products|fanum) }}</div>
+    <div class="card-block">{{ t('admin.orders_count', count=counts.orders|fanum) }}</div>
 </div>
 <div class="card-block" style="max-width:420px; padding:0; margin-bottom:24px;">
-    <a href="{{ url_for('admin.users') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">مدیریت کاربران</a>
-    <a href="{{ url_for('admin.products') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">مدیریت محصولات</a>
-    <a href="{{ url_for('admin.orders') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">مشاهده سفارش‌ها</a>
-    <a href="{{ url_for('admin.ping') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">بررسی سلامت سرور</a>
-    <a href="{{ url_for('admin.fetch_image') }}" style="display:block; padding:14px 18px; color:var(--ink);">دریافت تصویر محصول از URL</a>
+    <a href="{{ url_for('admin.users') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">{{ t('admin.manage_users') }}</a>
+    <a href="{{ url_for('admin.products') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">{{ t('admin.manage_products') }}</a>
+    <a href="{{ url_for('admin.orders') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">{{ t('admin.view_orders') }}</a>
+    <a href="{{ url_for('admin.ping') }}" style="display:block; padding:14px 18px; border-bottom:1px solid var(--line); color:var(--ink);">{{ t('admin.server_health') }}</a>
+    <a href="{{ url_for('admin.fetch_image') }}" style="display:block; padding:14px 18px; color:var(--ink);">{{ t('admin.fetch_image_title') }}</a>
 </div>
-<form method="post" action="{{ url_for('admin.reset') }}" onsubmit="return confirm('پایگاه‌داده به حالت اولیه بازنشانی شود؟');">
-    <button class="btn btn-danger">بازنشانی پایگاه‌داده</button>
+<form method="post" action="{{ url_for('admin.reset') }}" onsubmit="return confirm('{{ t('admin.reset_confirm') }}');">
+    <button class="btn btn-danger">{{ t('admin.reset_btn') }}</button>
 </form>
 {% endblock %}

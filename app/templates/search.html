@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}جستجو - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('search.title', query=query) }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
 <!-- VULN: Reflected XSS (WSTG-INPV-01) - the raw search term is rendered with |safe -->
-<h1 class="page-title">نتایج جستجو برای: {{ query|safe }}</h1>
+<h1 class="page-title">{{ t('search.title', query='')|safe }}{{ query|safe }}</h1>
 
 {% if error %}
 <div class="alert alert-info" style="direction:ltr; text-align:left; font-family:monospace;">
@@ -25,16 +25,16 @@
             <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 10px;">{{ product['description'] }}</p>
             <div class="p-price-row">
                 <span class="p-price">
-                    {% if product['price'] is number %}{{ product['price']|toman }}<small> تومان</small>{% else %}{{ product['price'] }}{% endif %}
+                    {% if product['price'] is number %}{{ product['price']|toman }}<small> {{ t('currency.toman') }}</small>{% else %}{{ product['price'] }}{% endif %}
                 </span>
             </div>
             {% if product['id'] is number %}
-            <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}" class="btn btn-outline btn-block">مشاهده محصول</a>
+            <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}" class="btn btn-outline btn-block">{{ t('search.view_product') }}</a>
             {% endif %}
         </div>
     </div>
     {% else %}
-    <p style="color:var(--ink-soft);">هیچ محصولی با این عبارت پیدا نشد.</p>
+    <p style="color:var(--ink-soft);">{{ t('search.no_results') }}</p>
     {% endfor %}
 </div>
 {% endblock %}

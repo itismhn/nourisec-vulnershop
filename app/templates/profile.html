@@ -1,50 +1,50 @@
 {% extends "base.html" %}
-{% block title %}پروفایل - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('profile.title', username=profile_user['username']) }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">پروفایل: {{ profile_user['username'] }}</h1>
+<h1 class="page-title">{{ t('profile.title', username=profile_user['username']) }}</h1>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;">
     <div class="card-block">
-        <p><b>ایمیل:</b> {{ profile_user['email'] }}</p>
-        <p><b>نقش:</b> {{ profile_user['role'] }}</p>
+        <p><b>{{ t('profile.email_label') }}</b> {{ profile_user['email'] }}</p>
+        <p><b>{{ t('profile.role_label') }}</b> {{ profile_user['role'] }}</p>
 
         {% if session.get('user_id') == profile_user['id'] %}
         <hr style="border:none; border-top:1px solid var(--line); margin:18px 0;">
-        <h3 style="font-size:15px;">تنظیمات حساب</h3>
+        <h3 style="font-size:15px;">{{ t('profile.account_settings') }}</h3>
 
         <form method="post" action="{{ url_for('account.change_email') }}" class="field">
-            <label>تغییر ایمیل</label>
+            <label>{{ t('profile.change_email') }}</label>
             <div style="display:flex; gap:8px;">
                 <input type="email" name="email" value="{{ profile_user['email'] }}">
-                <button class="btn btn-outline">به‌روزرسانی</button>
+                <button class="btn btn-outline">{{ t('common.update_btn') }}</button>
             </div>
         </form>
         <form method="post" action="{{ url_for('account.change_password') }}" class="field">
-            <label>تغییر رمز عبور</label>
+            <label>{{ t('profile.change_password') }}</label>
             <div style="display:flex; gap:8px;">
                 <input type="password" name="password">
-                <button class="btn btn-outline">به‌روزرسانی</button>
+                <button class="btn btn-outline">{{ t('common.update_btn') }}</button>
             </div>
         </form>
         <form method="post" action="{{ url_for('uploads.upload_avatar') }}" enctype="multipart/form-data" class="field">
-            <label>آپلود تصویر پروفایل</label>
+            <label>{{ t('profile.upload_avatar') }}</label>
             <div style="display:flex; gap:8px;">
                 <input type="file" name="avatar">
-                <button class="btn btn-outline">آپلود</button>
+                <button class="btn btn-outline">{{ t('common.upload_btn') }}</button>
             </div>
         </form>
         {% endif %}
     </div>
 
     <div class="card-block">
-        <h3 style="font-size:15px; margin-top:0;">سفارش‌ها</h3>
+        <h3 style="font-size:15px; margin-top:0;">{{ t('profile.orders_heading') }}</h3>
         <ul style="list-style:none; padding:0; margin:0;">
         {% for order in orders %}
             <li style="padding:10px 0; border-bottom:1px solid var(--line);">
-                <a href="{{ url_for('account.order_detail', order_id=order['id']) }}">سفارش #{{ order['id']|fanum }} - {{ order['total']|toman }} تومان</a>
+                <a href="{{ url_for('account.order_detail', order_id=order['id']) }}">{{ t('common.order_link', id=order['id']|fanum, total=order['total']|toman, currency=t('currency.toman')) }}</a>
             </li>
         {% else %}
-            <li style="color:var(--ink-soft);">هنوز سفارشی ثبت نشده.</li>
+            <li style="color:var(--ink-soft);">{{ t('profile.no_orders') }}</li>
         {% endfor %}
         </ul>
     </div>

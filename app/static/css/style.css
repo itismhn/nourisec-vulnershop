@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Lalezar&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Lalezar&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root{
   --ink:#241E19; --ink-soft:#6B6053; --paper:#FBF6EC; --paper-alt:#F3EAD9; --line:#E7DAC0;
@@ -10,8 +10,16 @@
 *{box-sizing:border-box;}
 html,body{margin:0; padding:0;}
 body{
-  background:var(--paper); color:var(--ink); font-family:'Vazirmatn',Tahoma,sans-serif;
-  line-height:1.6; direction:rtl;
+  background:var(--paper); color:var(--ink);
+  line-height:1.6;
+}
+body.rtl{direction:rtl; font-family:'Vazirmatn',Tahoma,sans-serif;}
+body.ltr{direction:ltr; font-family:'Inter',system-ui,sans-serif;}
+body.rtl .avatar-initial{font-family:'Lalezar',sans-serif;}
+body.ltr .logo-word, body.ltr .hero-title, body.ltr .promo-title, body.ltr .ad-brand,
+body.ltr .ad-strip b, body.ltr .ad-card-sm b, body.ltr .section-title, body.ltr .page-title,
+body.ltr .form-page h1, body.ltr .nouri-footer b, body.ltr .avatar-initial{
+  font-family:'Inter',system-ui,sans-serif; font-weight:700;
 }
 a{color:var(--turquoise); text-decoration:none;}
 a:hover{color:var(--turquoise-dark);}
@@ -50,6 +58,9 @@ header.site .wrap{display:flex; align-items:center; gap:24px; height:auto; min-h
 .header-actions .cell{display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 12px; border-radius:10px; cursor:pointer; color:var(--ink); background:none; border:none; font-family:inherit;}
 .header-actions .cell:hover{background:var(--paper-alt);}
 .header-actions .cell span{font-size:11.5px; color:var(--ink-soft);}
+.lang-switch{padding:6px 10px !important;}
+.lang-switch span{font-size:13px !important; font-weight:600; color:var(--ink-soft);}
+.lang-switch span.active{color:var(--turquoise-dark); font-weight:800; text-decoration:underline;}
 .cart-dot{position:relative;}
 .cart-dot em{position:absolute; top:-2px; left:-2px; background:var(--wine); color:#fff; font-style:normal; font-size:10px; font-weight:700; width:17px; height:17px; border-radius:999px; display:flex; align-items:center; justify-content:center;}
 
@@ -96,7 +107,8 @@ header.mini .wrap{display:flex; align-items:center; justify-content:space-betwee
 .ad-top{display:flex; align-items:center; gap:10px; position:relative; z-index:2;}
 .ad-shield{width:36px; height:36px; border-radius:10px; background:rgba(16,142,135,.18); display:flex; align-items:center; justify-content:center; color:#3FD6C8; flex-shrink:0;}
 .ad-brand{font-family:'Lalezar',sans-serif; font-size:18px; color:#fff; font-weight:400;}
-.ad-brand small{display:block; font-family:'Vazirmatn'; font-size:11px; color:#9FB6B3; font-weight:400;}
+.ad-brand small{display:block; font-family:inherit; font-size:11px; color:#9FB6B3; font-weight:400;}
+body.rtl .ad-brand small{font-family:'Vazirmatn';}
 .ad-copy{font-size:12.5px; color:#C7D6D3; margin:6px 0 0; position:relative; z-index:2;}
 .ad-actions{display:flex; gap:8px; position:relative; z-index:2; flex-wrap:wrap;}
 .ad-btn{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; padding:9px 14px; border-radius:9px; border:1px solid rgba(255,255,255,.15);}

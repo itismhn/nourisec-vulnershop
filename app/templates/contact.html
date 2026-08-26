@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}تماس با ما - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('contact.title') }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
 <div class="form-page">
-    <h1>تماس با ما</h1>
+    <h1>{{ t('contact.title') }}</h1>
     <form method="post">
         <div class="field">
-            <label>نام</label>
+            <label>{{ t('contact.name_label') }}</label>
             <input type="text" name="name">
         </div>
         <div class="field">
-            <label>ایمیل</label>
+            <label>{{ t('auth.email_label') }}</label>
             <input type="email" name="email">
         </div>
         <div class="field">
-            <label>پیام</label>
+            <label>{{ t('contact.message_label') }}</label>
             <textarea name="message" rows="4"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-block">ارسال پیام</button>
+        <button type="submit" class="btn btn-primary btn-block">{{ t('contact.send_btn') }}</button>
     </form>
 </div>
 {% endblock %}

@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.db import get_db
+from app.i18n import t
 from app.models import (
     get_product,
     get_product_sold_count,
@@ -36,7 +37,7 @@ def product_detail(product_id):
     # IDs (WSTG-ERRH-01). Try /product/abc.
     product = get_product(int(product_id))
     if not product:
-        flash("محصول مورد نظر پیدا نشد.", "warning")
+        flash(t("shop.flash_product_not_found"), "warning")
         return redirect(url_for("shop.index"))
     reviews = get_reviews(product["id"])
     sold_count = get_product_sold_count(product["id"])
@@ -90,7 +91,7 @@ def cart_add(product_id):
     key = str(product_id)
     cart_items[key] = cart_items.get(key, 0) + int(request.form.get("qty", 1))
     session["cart"] = cart_items
-    flash("به سبد خرید اضافه شد.", "success")
+    flash(t("shop.flash_added_to_cart"), "success")
     return redirect(request.referrer or url_for("shop.index"))
 
 
@@ -105,12 +106,12 @@ def cart_remove(product_id):
 @shop_bp.route("/checkout", methods=["GET", "POST"])
 def checkout():
     if "user_id" not in session:
-        flash("برای ادامه خرید ابتدا وارد حساب کاربری خود شوید.", "warning")
+        flash(t("shop.flash_login_to_checkout"), "warning")
         return redirect(url_for("auth.login"))
 
     cart_items = session.get("cart", {})
     if not cart_items:
-        flash("سبد خرید شما خالی است.", "info")
+        flash(t("shop.flash_cart_empty"), "info")
         return redirect(url_for("shop.cart"))
 
     if request.method == "POST":
@@ -136,7 +137,7 @@ def checkout():
             )
         db.commit()
         session["cart"] = {}
-        flash("سفارش شما با موفقیت ثبت شد! (این یک پرداخت آزمایشی است و مبلغ واقعی کسر نشده.)", "success")
+        flash(t("shop.flash_order_success"), "success")
         return redirect(url_for("account.order_detail", order_id=order_id))
 
     return render_template("checkout.html")

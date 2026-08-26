@@ -15,6 +15,7 @@ from flask import (
 )
 
 from app.db import get_db, init_db
+from app.i18n import t
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -30,7 +31,7 @@ def _admin_required():
 @admin_bp.route("/")
 def dashboard():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
     db = get_db()
     counts = {
@@ -44,7 +45,7 @@ def dashboard():
 @admin_bp.route("/users")
 def users():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
     db = get_db()
     all_users = db.execute("SELECT * FROM users ORDER BY id").fetchall()
@@ -54,7 +55,7 @@ def users():
 @admin_bp.route("/orders")
 def orders():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
     db = get_db()
     all_orders = db.execute(
@@ -68,7 +69,7 @@ def orders():
 @admin_bp.route("/products", methods=["GET", "POST"])
 def products():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
 
     db = get_db()
@@ -82,7 +83,7 @@ def products():
             (name, description, float(price), category, "placeholder.svg"),
         )
         db.commit()
-        flash("محصول اضافه شد.", "success")
+        flash(t("admin.flash_product_added"), "success")
         return redirect(url_for("admin.products"))
 
     all_products = db.execute("SELECT * FROM products ORDER BY id").fetchall()
@@ -92,19 +93,19 @@ def products():
 @admin_bp.route("/products/<int:product_id>/delete", methods=["POST"])
 def delete_product(product_id):
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
     db = get_db()
     db.execute("DELETE FROM products WHERE id = ?", (product_id,))
     db.commit()
-    flash("محصول حذف شد.", "info")
+    flash(t("admin.flash_product_deleted"), "info")
     return redirect(url_for("admin.products"))
 
 
 @admin_bp.route("/ping", methods=["GET", "POST"])
 def ping():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
 
     output = None
@@ -132,7 +133,7 @@ def ping():
 @admin_bp.route("/fetch-image", methods=["GET", "POST"])
 def fetch_image():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
 
     fetched_path = None
@@ -162,12 +163,12 @@ def fetch_image():
 @admin_bp.route("/reset", methods=["POST"])
 def reset():
     if not _admin_required():
-        flash("لطفا ابتدا وارد شوید.", "warning")
+        flash(t("common.flash_login_required"), "warning")
         return redirect(url_for("auth.login"))
 
     init_db()
     from scripts.seed import seed
 
     seed()
-    flash("پایگاه‌داده به حالت اولیه بازنشانی شد.", "success")
+    flash(t("admin.flash_db_reset"), "success")
     return redirect(url_for("admin.dashboard"))

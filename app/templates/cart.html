@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}سبد خرید - نوری‌شاپ{% endblock %}
+{% block title %}{{ t('nav.cart') }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">سبد خرید شما ({{ items|length|fanum }} کالا)</h1>
+<h1 class="page-title">{{ t('cart.title', count=items|length|fanum) }}</h1>
 
 {% if items %}
 <div style="display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start;">
@@ -13,11 +13,11 @@
             </div>
             <div style="flex:1;">
                 <div style="font-size:14px; font-weight:600; margin-bottom:6px;">{{ item.product['name'] }}</div>
-                <div style="font-size:12px; color:var(--ink-soft);">تعداد: {{ item.qty|fanum }}</div>
+                <div style="font-size:12px; color:var(--ink-soft);">{{ t('cart.qty_label', qty=item.qty|fanum) }}</div>
             </div>
-            <div style="font-weight:800; font-size:15px;">{{ item.subtotal|toman }} تومان</div>
+            <div style="font-weight:800; font-size:15px;">{{ item.subtotal|toman }} {{ t('currency.toman') }}</div>
             <form method="post" action="{{ url_for('shop.cart_remove', product_id=item.product['id']) }}">
-                <button class="icon-btn" style="border:1px solid var(--line);" title="حذف">
+                <button class="icon-btn" style="border:1px solid var(--line);" title="{{ t('cart.remove') }}">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
                 </button>
             </form>
@@ -26,17 +26,17 @@
     </div>
 
     <div class="card-block">
-        <div style="font-size:15px; font-weight:700; margin:0 0 16px; padding-bottom:14px; border-bottom:1px solid var(--line);">خلاصه سفارش</div>
+        <div style="font-size:15px; font-weight:700; margin:0 0 16px; padding-bottom:14px; border-bottom:1px solid var(--line);">{{ t('cart.order_summary') }}</div>
         <div style="display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;">
-            <span>جمع کل کالاها</span><b style="color:var(--ink);">{{ total|toman }} تومان</b>
+            <span>{{ t('cart.items_total') }}</span><b style="color:var(--ink);">{{ total|toman }} {{ t('currency.toman') }}</b>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;">
-            <span>هزینه ارسال</span><b style="color:var(--ink);">رایگان</b>
+            <span>{{ t('cart.shipping_label') }}</span><b style="color:var(--ink);">{{ t('cart.free') }}</b>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:baseline; padding-top:14px; margin-top:6px; border-top:1px solid var(--line); font-size:15px; font-weight:700;">
-            <span>مبلغ قابل پرداخت</span><span style="font-size:20px; font-weight:800;">{{ total|toman }} تومان</span>
+            <span>{{ t('cart.total_payable') }}</span><span style="font-size:20px; font-weight:800;">{{ total|toman }} {{ t('currency.toman') }}</span>
         </div>
-        <a href="{{ url_for('shop.checkout') }}" class="btn btn-primary btn-block" style="margin-top:18px;">ادامه فرآیند خرید</a>
+        <a href="{{ url_for('shop.checkout') }}" class="btn btn-primary btn-block" style="margin-top:18px;">{{ t('cart.checkout_btn') }}</a>
     </div>
 
     <div></div>
@@ -45,14 +45,14 @@
             <div class="sh"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.5l7.5 3v5.4c0 5-3.2 8.9-7.5 10.1-4.3-1.2-7.5-5.1-7.5-10.1V5.5Z"/><path d="M9 12l2.2 2.2L15.5 9.7"/></svg></div>
             <b>NouriSec</b>
         </div>
-        <p>نوری‌شاپ محصولی از آکادمی نوری‌سک است. کنجکاوید بدونید امنیت یک فروشگاه اینترنتی واقعی چطور تضمین می‌شه؟ در آکادمی نوری‌سک یاد بگیرید.</p>
+        <p>{{ t('cart.ad_copy') }}</p>
         <a href="https://nourisec.com" rel="noopener" target="_blank">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18" stroke-width="1.4"/></svg>
-            مشاهده nourisec.com
+            {{ t('cart.view_nourisec') }}
         </a>
     </div>
 </div>
 {% else %}
-<p style="color:var(--ink-soft); padding:40px 0;">سبد خرید شما خالی است. <a href="{{ url_for('shop.index') }}">مشاهده محصولات</a></p>
+<p style="color:var(--ink-soft); padding:40px 0;">{{ t('cart.empty') }} <a href="{{ url_for('shop.index') }}">{{ t('cart.view_products') }}</a></p>
 {% endif %}
 {% endblock %}

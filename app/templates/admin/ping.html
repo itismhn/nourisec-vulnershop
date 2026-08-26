@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}بررسی سلامت سرور{% endblock %}
+{% block title %}{{ t('admin.server_health') }}{% endblock %}
 {% block content %}
-<h1 class="page-title">بررسی سلامت سرور</h1>
-<p style="color:var(--ink-soft);">یک هاست داخلی را برای بررسی اتصال پینگ کنید.</p>
+<h1 class="page-title">{{ t('admin.server_health') }}</h1>
+<p style="color:var(--ink-soft);">{{ t('admin.ping_desc') }}</p>
 <form method="post" class="card-block" style="max-width:420px; display:flex; gap:8px; margin-bottom:20px;">
     <input type="text" name="host" value="{{ host }}" placeholder="127.0.0.1" style="flex:1; border:1.5px solid var(--line); border-radius:10px; padding:11px 14px; font-family:inherit;">
-    <button class="btn btn-primary">پینگ</button>
+    <button class="btn btn-primary">{{ t('admin.ping_btn') }}</button>
 </form>
 {% if output %}
 <pre style="background:var(--ink); color:#EFE7D8; padding:18px; border-radius:12px; direction:ltr; text-align:left; overflow-x:auto;">{{ output }}</pre>
