@@ -99,10 +99,10 @@
                 {% endif %}
                 <button class="wish-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 4-4.4 7.6-8.8 11-4.4-3.4-8.8-7-8.8-11a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg></button>
                 <a href="{{ url_for('shop.product_detail', product_id=product['id']) }}">
-                    <div class="p-img-wrap"><img src="{{ url_for('static', filename='img/' + (product['image'] or 'placeholder.svg')) }}" alt="{{ product['name'] }}"></div>
+                    <div class="p-img-wrap"><img src="{{ url_for('static', filename='img/' + (product['image'] or 'placeholder.svg')) }}" alt="{{ product_name(product['name']) }}"></div>
                 </a>
                 <div class="p-body">
-                    <div class="p-title"><a href="{{ url_for('shop.product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></div>
+                    <div class="p-title"><a href="{{ url_for('shop.product_detail', product_id=product['id']) }}">{{ product_name(product['name']) }}</a></div>
                     {% if product['review_count'] %}
                     <div class="p-rating">
                         <span class="stars">{{ '★' * (product['avg_rating']|round|int) }}{{ '☆' * (5 - (product['avg_rating']|round|int)) }}</span>

@@ -4,7 +4,7 @@ from flask import Flask, redirect, render_template, request, send_from_directory
 
 from app import db as db_module
 from app.config import Config
-from app.i18n import SUPPORTED_LOCALES, category_label, get_locale, t
+from app.i18n import SUPPORTED_LOCALES, category_label, get_locale, product_name, t
 
 BANNER_TEXT = (
     "⚠️ EDUCATIONAL / INTENTIONALLY VULNERABLE APPLICATION — NouriSec Training Lab. "
@@ -32,6 +32,7 @@ def create_app():
             "t": t,
             "locale": get_locale(),
             "category_label": category_label,
+            "product_name": product_name,
         }
 
     @app.route("/set-language/<lang>")

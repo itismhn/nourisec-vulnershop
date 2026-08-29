@@ -16,7 +16,7 @@
         {% for p in products %}
             <tr>
                 <td style="padding-right:18px;">{{ p['id']|fanum }}</td>
-                <td>{{ p['name'] }}</td>
+                <td>{{ product_name(p['name']) }}</td>
                 <td>{{ category_label(p['category']) }}</td>
                 <td>{{ p['price']|toman }} {{ t('currency.toman') }}</td>
                 <td>

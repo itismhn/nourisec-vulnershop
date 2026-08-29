@@ -547,6 +547,23 @@ _CATEGORY_LABELS = {
     "صنایع‌دستی": "Handicrafts",
 }
 
+# Product names are stored in the DB in Persian (see scripts/seed.py) and are not
+# looked up by value anywhere (unlike category), so this only affects display.
+_PRODUCT_NAME_LABELS = {
+    "زعفران سرگل ممتاز قائنات، ۱ مثقال": "Premium Sargol Saffron, Qaenat, 1 Mesghal",
+    "پسته اکبری درجه یک، بسته ۵۰۰ گرمی": "Grade A Akbari Pistachios, 500g Pack",
+    "گلاب قمصر کاشان، بطری ۴۰۰ میلی‌لیتری": "Kashan Qamsar Rosewater, 400ml Bottle",
+    "خرمای مضافتی درجه یک بم، ۱ کیلوگرم": "Grade A Mozafati Dates from Bam, 1kg",
+    "مغز گردوی دور سفید همدان، ۱ کیلوگرم": "Hamedan White Walnut Kernels, 1kg",
+    "چای احمد شکسته ممتاز، ۴۵۰ گرم": "Ahmad Premium Black Tea, 450g",
+    "هندزفری بی‌سیم JBL مدل T125BT": "JBL T125BT Wireless Earbuds",
+    "ساعت هوشمند اولترا، نمایشگر AMOLED": "Ultra Smartwatch, AMOLED Display",
+    "کفش اسپرت مردانه ایرمکس": "Irmax Men's Sport Shoes",
+    "کوله پشتی چرم طبیعی، دست‌دوز تبریز": "Genuine Leather Backpack, Handmade in Tabriz",
+    "عطر مردانه امبروکسان ۱۹، حجم ۵۰ میلی‌لیتر": "Ambroxan 19 Men's Perfume, 50ml",
+    "فرش دستباف قشقایی، طرح سنتی ۶ متری": "Handwoven Qashqai Rug, Traditional Design, 6m",
+}
+
 
 def get_locale():
     lang = session.get("lang") or request.cookies.get(COOKIE_NAME)
@@ -567,3 +584,11 @@ def category_label(category):
     if get_locale() == "en":
         return _CATEGORY_LABELS.get(category, category)
     return category
+
+
+def product_name(name):
+    if not name:
+        return name
+    if get_locale() == "en":
+        return _PRODUCT_NAME_LABELS.get(name, name)
+    return name

@@ -9,7 +9,7 @@
         <tbody>
         {% for item in items %}
             <tr>
-                <td style="padding-right:18px;">{{ item['product_name'] }}</td>
+                <td style="padding-right:18px;">{{ product_name(item['product_name']) }}</td>
                 <td>{{ item['quantity']|fanum }}</td>
                 <td>{{ item['price']|toman }} {{ t('currency.toman') }}</td>
             </tr>
