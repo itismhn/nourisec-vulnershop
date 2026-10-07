@@ -95,6 +95,17 @@ def create_app():
     # exposed DB backup, directory listing) without requiring the whole training
     # repo itself to be served as a live, web-accessible .git checkout.
 
+    @app.route("/.git/")
+    def fake_git_listing():
+        # VULN: Security Misconfiguration - directory listing of exposed VCS metadata
+        # (WSTG-CONF-01/03). robots.txt points recon here; this index makes the
+        # individual metadata files discoverable instead of a dead-end 404.
+        entries = ["HEAD", "config"]
+        listing = "<h1>Index of /.git/</h1><ul>" + "".join(
+            f'<li><a href="/.git/{e}">{e}</a></li>' for e in entries
+        ) + "</ul>"
+        return listing
+
     @app.route("/.git/HEAD")
     def fake_git_head():
         # VULN: Security Misconfiguration - exposed VCS metadata (WSTG-CONF-01)
@@ -112,6 +123,17 @@ def create_app():
             "\tfetch = +refs/heads/*:refs/remotes/origin/*\n"
         )
         return fake_config, 200, {"Content-Type": "text/plain"}
+
+    @app.route("/backup/")
+    def backup_listing():
+        # VULN: Security Misconfiguration - directory listing of a web-accessible backup
+        # path (WSTG-CONF-02/03). robots.txt points recon here; this index exposes the
+        # leftover dump by name instead of a dead-end 404.
+        files = os.listdir(app.config["BACKUP_DIR"])
+        listing = "<h1>Index of /backup/</h1><ul>" + "".join(
+            f'<li><a href="/backup/{f}">{f}</a></li>' for f in files
+        ) + "</ul>"
+        return listing
 
     @app.route("/backup/<path:filename>")
     def backup_files(filename):
