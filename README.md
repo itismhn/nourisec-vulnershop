@@ -61,6 +61,32 @@ docker compose up --build
 
 Open <http://127.0.0.1:5000>. The database seeds itself automatically on first boot.
 
+<details>
+<summary><b>Linux prerequisites</b> (if <code>docker compose</code> doesn't work)</summary>
+
+Distro packages like Ubuntu's `docker.io` often ship without the Compose plugin or
+without the daemon running. The quickest fix is Docker's official install script,
+which installs Docker Engine and the Compose plugin together:
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER   # then log out and back in
+docker compose version          # should print a version
+```
+
+Common errors:
+
+- `docker: unknown command: docker compose`: the Compose plugin is missing. Install
+  `docker-compose-plugin` (apt/dnf) or use the script above.
+- `Cannot connect to the Docker daemon`: the service isn't running. Run
+  `sudo systemctl enable --now docker`, or `sudo service docker start` on systems
+  without systemd (e.g. WSL).
+- `permission denied ... docker.sock`: your user isn't in the `docker` group. Run the
+  `usermod` line above and log in again.
+
+</details>
+
 **Or locally, without Docker:**
 
 ```bash
