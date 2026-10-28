@@ -51,9 +51,9 @@ and the OWASP Top 10.
 Every one of these is confirmed working end-to-end, with a staged path from "find it"
 to "exploit it" to "here's the fix" — see [Docs](#docs) below.
 
-> **Authentication hardening mode:** set `VULNERSHOP_AUTH_MODE=secure` to run the same app with a
-> WSTG-4.4-aligned authentication system (lockout, safe reset flow, server-side sessions, password
-> policy, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
+> **Hardening mode:** set `VULNERSHOP_AUTH_MODE=secure` to run the same app with a
+> WSTG-4.4/4.5-aligned authentication and authorization layer (lockout, safe reset flow, server-side
+> sessions, password policy, admin role checks, IDOR ownership checks, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
 
 ## Run it
 

@@ -2,6 +2,7 @@ import os
 import time
 
 from flask import Blueprint, current_app, flash, redirect, request, session, url_for
+from werkzeug.utils import secure_filename
 
 from app.db import get_db
 from app.i18n import t
@@ -40,6 +41,11 @@ def upload_avatar():
     # intentional weakness here is the extension/content check above, not a
     # path-traversal hole.
     safe_name = os.path.basename(file.filename)
+    if current_app.config["AUTH_SECURE"]:
+        safe_name = secure_filename(safe_name)  # WSTG-ATHZ-01: no separators, dots-only or odd names
+        if not safe_name or not _extension_allowed(safe_name):
+            flash(t("uploads.flash_file_type_not_allowed"), "danger")
+            return redirect(url_for("account.profile", user_id=session["user_id"]))
     stored_name = f"user{session['user_id']}_{int(time.time())}_{safe_name}"
     file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], stored_name))
 

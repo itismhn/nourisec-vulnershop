@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 
 from app import security as sec
 from app.db import get_db
@@ -32,6 +32,20 @@ def _reauthenticate(user):
     return True
 
 
+def _require_owner_or_admin(owner_id):
+    """Secure mode (WSTG-ATHZ-04): only the owner or an admin may touch an object.
+
+    Anyone else gets the same 404 as for a non-existent id, so object ids can't be
+    enumerated either. The decision uses the DB-backed session, never request input.
+    """
+    if session.get("role") == "admin" and owner_id is not None:
+        return
+    if owner_id is not None and session.get("user_id") == owner_id:
+        return
+    sec.audit("authz_denied", user=session.get("username"), path=request.path)
+    abort(404)
+
+
 @account_bp.route("/profile")
 def profile_self():
     if not _require_login():
@@ -47,6 +61,8 @@ def profile(user_id):
     # VULN: Broken Access Control / IDOR (WSTG-ATHZ-01) - fetches by ID with no
     # check that user_id == session["user_id"]. Any logged-in user can view any
     # other user's profile by changing the number in the URL.
+    if current_app.config["AUTH_SECURE"]:
+        _require_owner_or_admin(user_id)  # WSTG-ATHZ-04
     user = get_user_by_id(user_id)
     if not user:
         flash(t("account.flash_user_not_found"), "warning")
@@ -72,6 +88,9 @@ def order_detail(order_id):
     # VULN: Broken Access Control / IDOR (WSTG-ATHZ-01) - no ownership check against
     # session["user_id"]. Incrementing the ID in the URL reveals other customers' orders.
     order = get_order(order_id)
+    if current_app.config["AUTH_SECURE"]:
+        # WSTG-ATHZ-04: a missing order and someone else's order look identical (404).
+        _require_owner_or_admin(order["user_id"] if order else None)
     if not order:
         flash(t("account.flash_order_not_found"), "warning")
         return redirect(url_for("account.orders"))

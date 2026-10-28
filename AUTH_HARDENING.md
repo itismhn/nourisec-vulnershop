@@ -1,4 +1,4 @@
-# Authentication hardening mode (OWASP WSTG v4.2 §4.4)
+# Authentication & authorization hardening mode (OWASP WSTG v4.2 §4.4 and §4.5)
 
 The lab ships two authentication implementations selected by one switch, so you can demo
 *attack → fix → re-attack* on the same app:
@@ -6,21 +6,21 @@ The lab ships two authentication implementations selected by one switch, so you 
 | Mode | How | What it is |
 |------|-----|-----------|
 | `vulnerable` (default) | nothing to set | The original intentionally broken auth used by the course labs |
-| `secure` | `VULNERSHOP_AUTH_MODE=secure` | Hardened auth, covered by `tests/test_auth_wstg.py` |
+| `secure` | `VULNERSHOP_AUTH_MODE=secure` | Hardened auth and access control, covered by `tests/test_auth_wstg.py` and `tests/test_authz_wstg.py` |
 
 ```bash
 VULNERSHOP_AUTH_MODE=secure python scripts/reset_db.py   # reseed: secure mode prints random credentials
 VULNERSHOP_AUTH_MODE=secure python run.py
 # Docker: VULNERSHOP_AUTH_MODE=secure docker compose up --build
 #         docker compose exec vulnershop python scripts/reset_db.py
-.venv/bin/python -m unittest discover -s tests -v          # 35 checks, one class per WSTG test
+.venv/bin/python -m unittest discover -s tests -v          # 64 checks, one class per WSTG test
 ```
 
 Seeded secure-mode accounts get random passwords (printed once; override with
 `SEED_PASSWORD_ADMIN`, `SEED_PASSWORD_ALICE`, `SEED_PASSWORD_BOB`). The "mailbox" for reset links
 and change notifications is the server log (`vulnershop.mail`); audit events go to
 `vulnershop.auth`. Code: [`app/security.py`](app/security.py), secure branches in
-[`app/auth.py`](app/auth.py) and [`app/account.py`](app/account.py).
+[`app/auth.py`](app/auth.py), [`app/account.py`](app/account.py), [`app/admin.py`](app/admin.py) and [`app/uploads.py`](app/uploads.py).
 
 ## WSTG coverage
 
@@ -36,6 +36,15 @@ and change notifications is the server log (`vulnershop.mail`); audit events go 
 | ATHN-08 Security questions | n/a | none exist (deliberately) |
 | ATHN-09 Change/reset | `md5("reset-"+user)`, no expiry, global leak page | 256-bit random token, SHA-256 at rest, 15 min expiry, single use, older links invalidated, identical response for unknown users, rate-limited, token-guess throttle, leak page removed (404); password/e-mail change need the **current password**, CSRF token and policy; all other sessions revoked; notification mail to the old address |
 | ATHN-10 Alternative channels | any logged-in user can open `/admin/*` | admin routes require `role == admin` (403 otherwise); password hashes hidden in the admin user list |
+
+## Authorization coverage (WSTG v4.2 §4.5)
+
+| WSTG | Vulnerable build | Secure mode |
+|------|------------------|-------------|
+| ATHZ-01 Directory traversal / file include | `/backup/` dump, fake `/.git/` and `/uploads/` listings are public (`send_from_directory` already blocks `..`, encoded and double-encoded variants) | those paths return 404; avatar names go through `secure_filename` and are re-checked against the extension allow-list, so separators, `..`, nameless and `x.png.php`-style names never reach disk |
+| ATHZ-02 Bypassing the authorization schema | any logged-in customer can use every `/admin/*` route and verb | admin routes need `role == admin` (403, audited as `authz_denied`) for GET/HEAD/POST alike; anonymous users are redirected to login; path tricks (`//`, `;`, `%00`, case) and override headers (`X-HTTP-Method-Override`, `X-Original-URL`, `X-Forwarded-For`) do not help; demoting or deleting an account takes effect on the very next request |
+| ATHZ-03 Privilege escalation | role is copied into the signed cookie (secret is public, so it can be forged) | role/user id are re-read from the server-side session record on every request, so a forged cookie cannot change them; `role`/`user_id`/`username` form fields are ignored by register, e-mail, password and avatar handlers |
+| ATHZ-04 IDOR | `/profile/<id>` and `/orders/<id>` return anyone's data | only the owner or an admin; everyone else gets the same 404 as for a non-existent id (no ID enumeration), and the denial is audited |
 
 CSRF tokens (`csrf_input()` in every POST form) are enforced globally in secure mode, which also
 neutralises `app/static/csrf_poc_change_email.html`.
@@ -55,4 +64,5 @@ neutralises `app/static/csrf_poc_change_email.html`.
 - Registration still says "username already taken" (usernames are public in a shop). Logout is a GET link.
 - No password aging (NIST 800-63B advises against forced rotation); no e-mail verification on signup.
 - Lockout state is in SQLite; use Redis/WAF rate limiting for multi-instance deployments.
-- IDOR (`/profile/<id>`, `/orders/<id>`), XSS, SQLi in search, uploads, SSRF, etc. are other labs and stay vulnerable in both modes.
+- XSS, SQLi in search, SVG-upload script execution, SSRF, command injection, etc. are other labs and stay vulnerable in both modes. (Admin-only tools such as `/admin/ping` and `/admin/fetch-image` are now unreachable by customers in secure mode, but are still injectable by an admin.)
+- Authorization is a per-handler check (`_admin_required`, `_require_owner_or_admin`); there is no central policy layer or per-object ACL, and the admin role is all-or-nothing.

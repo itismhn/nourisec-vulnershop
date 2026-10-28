@@ -15,6 +15,7 @@ from flask import (
     url_for,
 )
 
+from app import security as sec
 from app.db import get_db, init_db
 from app.i18n import t
 
@@ -28,6 +29,7 @@ def _admin_required():
         if "user_id" not in session:
             return False
         if session.get("role") != "admin":
+            sec.audit("authz_denied", user=session.get("username"), path=request.path)
             abort(403)
         return True
     # VULN: Broken Access Control (WSTG-ATHZ-01 / OWASP A01:2021) - this only checks

@@ -97,8 +97,15 @@ def create_app():
     # exposed DB backup, directory listing) without requiring the whole training
     # repo itself to be served as a live, web-accessible .git checkout.
 
+    def _exposed_only_in_lab():
+        # Secure mode (WSTG-ATHZ-01 / CONF-02/03): none of these paths exist, so there is no
+        # listing to browse and no leftover dump or VCS metadata to pull.
+        if app.config["AUTH_SECURE"]:
+            abort(404)
+
     @app.route("/.git/")
     def fake_git_listing():
+        _exposed_only_in_lab()
         # VULN: Security Misconfiguration - directory listing of exposed VCS metadata
         # (WSTG-CONF-01/03). robots.txt points recon here; this index makes the
         # individual metadata files discoverable instead of a dead-end 404.
@@ -110,11 +117,13 @@ def create_app():
 
     @app.route("/.git/HEAD")
     def fake_git_head():
+        _exposed_only_in_lab()
         # VULN: Security Misconfiguration - exposed VCS metadata (WSTG-CONF-01)
         return "ref: refs/heads/main\n", 200, {"Content-Type": "text/plain"}
 
     @app.route("/.git/config")
     def fake_git_config():
+        _exposed_only_in_lab()
         # VULN: Security Misconfiguration - exposed VCS metadata (WSTG-CONF-01)
         fake_config = (
             "[core]\n"
@@ -128,6 +137,7 @@ def create_app():
 
     @app.route("/backup/")
     def backup_listing():
+        _exposed_only_in_lab()
         # VULN: Security Misconfiguration - directory listing of a web-accessible backup
         # path (WSTG-CONF-02/03). robots.txt points recon here; this index exposes the
         # leftover dump by name instead of a dead-end 404.
@@ -139,11 +149,13 @@ def create_app():
 
     @app.route("/backup/<path:filename>")
     def backup_files(filename):
+        _exposed_only_in_lab()
         # VULN: Security Misconfiguration - old backup left in a web-accessible path (WSTG-CONF-02)
         return send_from_directory(app.config["BACKUP_DIR"], filename)
 
     @app.route("/uploads/")
     def uploads_listing():
+        _exposed_only_in_lab()
         # VULN: Security Misconfiguration - directory listing enabled (WSTG-CONF-03)
         files = os.listdir(app.config["UPLOAD_FOLDER"])
         listing = "<h1>Index of /uploads/</h1><ul>" + "".join(
