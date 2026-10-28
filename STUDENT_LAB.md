@@ -64,10 +64,56 @@ list of controls is in [`AUTH_HARDENING.md`](AUTH_HARDENING.md) — read it **af
 
 ## Phase 3 — Authorization / Access Control (WSTG-ATHZ)
 
-Authentication asked "who are you?"; this phase asks "what are you allowed to do?". Use at least
-two accounts (e.g. `alice` and `bob`, plus an anonymous browser) so you can compare what each
-one can reach. Not every test finds a bug — a test that *fails to break in* is still a result,
-so log it too.
+Authentication asked "who are you?"; this phase asks "what are you allowed to do?". It covers
+every test in OWASP WSTG v4.2 §4.5. Work it on the default build, then repeat the whole table on
+the hardened build (see "Retest" below) and note what changed.
+
+### Help: how to work this phase
+
+**1. Set up your test identities.** Authorization bugs only show up when you compare who can do
+what, so you need at least three "people":
+
+| Identity | How | Use it for |
+|----------|-----|-----------|
+| Customer A | register a new account, then buy something (add to cart → checkout) | the "attacker" |
+| Customer B | a second account in a *private/incognito window* (separate cookies), also buys something | the "victim" — owns data A shouldn't see |
+| Anonymous | a window with no login | what is reachable with no session at all |
+
+Keep a note of each account's ID and order ID — the numbers in the URLs are your raw material.
+A proxy (Burp, ZAP) makes it easy to replay one identity's request with another identity's cookie.
+
+**2. Use the compare-and-replay loop.** For every interesting request:
+
+1. Make it as the owner and note the response (status code, size, what is shown).
+2. Replay it as another customer, then as anonymous.
+3. Change one thing at a time — an ID, a URL path, the HTTP method, a form field, a cookie value.
+4. Compare. Same data for the wrong person = finding. A refusal = note *how* it refused.
+
+**3. Read the status codes.** `200` with someone else's data is a bug. `302` to `/login` means
+"not authenticated" (not the same as "not authorized"). `403` means the server knows who you are
+and said no. `404` can mean "doesn't exist" *or* "pretending it doesn't exist"; if a made-up ID
+and someone else's ID give different answers, that difference leaks information.
+
+**4. Per-test nudges** (no spoilers, just where to point your tools):
+
+- **ATHZ-04** — look for IDs in the URL *and* in forms. Walk the ID up and down; check both what
+  you can *read* and what you can *change*.
+- **ATHZ-02** — you can't see a menu link to the admin area, so don't rely on the UI: guess the
+  URL, then test every verb (`GET`, `POST`, `HEAD`) and every action page, not just the front page.
+- **ATHZ-03** — privilege is whatever the server believes about you. Find every place that
+  belief could come from: form fields, the cookie, a hidden parameter. Add a field the form
+  never asked for and see whether it sticks.
+- **ATHZ-01** — try `../`, `..%2f` and `%252e%252e%252f` against the paths that serve files by
+  name. A blocked traversal is a valid result; then ask what the *intended* path already gives
+  away (listings, leftover files, filenames you control).
+
+**5. What to record for each test** (this feeds `REPORT_TEMPLATE.md`): the URL and method, which
+identity you used, the exact request you changed, the response that proves it, and what an
+attacker would gain. For tests you could *not* break, write "attempted X, got Y" — that is
+evidence too.
+
+**6. Stuck?** [`VULN_TIPS.md`](VULN_TIPS.md) has a concrete nudge in its section 4
+("Broken Access Control / IDOR"). Don't open `INSTRUCTOR_GUIDE.md` — it is the answer key.
 
 | # | WSTG ID | Task | Hint |
 |---|---------|------|------|
