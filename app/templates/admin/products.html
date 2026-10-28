@@ -3,6 +3,7 @@
 {% block content %}
 <h1 class="page-title">{{ t('admin.products_title') }}</h1>
 <form method="post" class="card-block" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;">
+{{ csrf_input() }}
     <div class="field" style="margin:0;"><label>{{ t('admin.col_name') }}</label><input name="name"></div>
     <div class="field" style="margin:0;"><label>{{ t('admin.col_category') }}</label><input name="category"></div>
     <div class="field" style="margin:0;"><label>{{ t('admin.price_toman_label') }}</label><input name="price" type="number" step="1"></div>
@@ -21,6 +22,7 @@
                 <td>{{ p['price']|toman }} {{ t('currency.toman') }}</td>
                 <td>
                     <form method="post" action="{{ url_for('admin.delete_product', product_id=p['id']) }}">
+{{ csrf_input() }}
                         <button class="btn btn-outline" style="padding:6px 12px; font-size:12px;">{{ t('admin.delete_btn') }}</button>
                     </form>
                 </td>

@@ -5,6 +5,7 @@ import time
 import requests
 from flask import (
     Blueprint,
+    abort,
     current_app,
     flash,
     redirect,
@@ -21,6 +22,14 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 def _admin_required():
+    if current_app.config["AUTH_SECURE"]:
+        # Secure mode (WSTG-ATHN-10 / ATHZ-02): the admin channel needs the admin role,
+        # not merely "someone is logged in". Role is re-read from the DB every request.
+        if "user_id" not in session:
+            return False
+        if session.get("role") != "admin":
+            abort(403)
+        return True
     # VULN: Broken Access Control (WSTG-ATHZ-01 / OWASP A01:2021) - this only checks
     # that *someone* is logged in. It never checks session["role"] == "admin", so any
     # registered customer can reach every /admin/* route just by knowing/guessing the

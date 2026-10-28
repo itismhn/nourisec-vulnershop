@@ -5,6 +5,7 @@
 <div class="alert alert-info" style="max-width:480px;">{{ t('checkout.info_alert') }}</div>
 
 <form method="post" class="form-page" style="margin:20px 0;">
+{{ csrf_input() }}
     <div class="field">
         <label>{{ t('checkout.card_number') }}</label>
         <input type="text" placeholder="{{ '1234 5678 9012 3456' if locale == 'en' else '۱۲۳۴ ۵۶۷۸ ۹۰۱۲ ۳۴۵۶' }}">

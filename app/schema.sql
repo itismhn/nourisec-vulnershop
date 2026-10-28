@@ -1,5 +1,9 @@
 PRAGMA foreign_keys = OFF;
 
+DROP TABLE IF EXISTS auth_attempts;
+DROP TABLE IF EXISTS auth_sessions;
+DROP TABLE IF EXISTS password_resets;
+DROP TABLE IF EXISTS password_history;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS reviews;

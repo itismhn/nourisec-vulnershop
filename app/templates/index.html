@@ -116,6 +116,7 @@
                         {% if product['original_price'] %}<span class="p-price-old">{{ product['original_price']|toman }}</span>{% endif %}
                     </div>
                     <form method="post" action="{{ url_for('shop.cart_add', product_id=product['id']) }}">
+{{ csrf_input() }}
                         <input type="hidden" name="qty" value="1">
                         <button type="submit" class="add-btn">
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.4l1.9 11.2a2 2 0 0 0 2 1.7h8.6a2 2 0 0 0 2-1.6l1.4-7.3H6"/></svg>

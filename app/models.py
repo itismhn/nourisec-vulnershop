@@ -1,9 +1,15 @@
 import hashlib
 
+from flask import current_app
+
 from app.db import get_db
 
 
 def hash_password(password: str) -> str:
+    if current_app.config["AUTH_SECURE"]:
+        from app.security import hash_password_secure
+
+        return hash_password_secure(password)
     # VULN: Sensitive Data Exposure (WSTG-CRYP-04) - unsalted MD5 instead of a modern
     # slow/salted hash (bcrypt/argon2). Trivially crackable via rainbow tables.
     return hashlib.md5(password.encode("utf-8")).hexdigest()

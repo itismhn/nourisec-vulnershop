@@ -1,5 +1,6 @@
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 
+from app import security as sec
 from app.db import get_db
 from app.i18n import t
 from app.models import get_order, get_order_items, get_orders_for_user, get_user_by_id, hash_password
@@ -9,6 +10,26 @@ account_bp = Blueprint("account", __name__)
 
 def _require_login():
     return "user_id" in session
+
+
+def _reauthenticate(user):
+    """Secure mode: require the current password before a sensitive change (WSTG-ATHN-09).
+
+    Returns True when allowed. Failed guesses count toward a lockout, so a hijacked
+    session cannot be used to brute-force the password through this form.
+    """
+    key = f"pwcheck:{user['id']}"
+    wait = sec.throttle_remaining("reauth", key, sec.LOGIN_MAX_FAILURES, sec.LOGIN_WINDOW)
+    if wait:
+        sec.flash_throttled(wait)
+        return False
+    if not sec.verify_password(user["password_hash"], request.form.get("current_password", "")):
+        sec.record_attempt("reauth", key)
+        sec.audit("reauth_failed", user=user["username"])
+        flash(t("auth.flash_current_password_wrong"), "danger")
+        return False
+    sec.clear_attempts("reauth", key)
+    return True
 
 
 @account_bp.route("/profile")
@@ -69,6 +90,16 @@ def change_email():
     # See app/static/csrf_poc_change_email.html for a demo auto-submitting form.
     new_email = request.form.get("email", "").strip()
     db = get_db()
+    if current_app.config["AUTH_SECURE"]:
+        user = get_user_by_id(session["user_id"])
+        if not sec.EMAIL_RE.match(new_email) or len(new_email) > 254:
+            flash(t("auth.flash_email_invalid"), "danger")
+            return redirect(url_for("account.profile", user_id=session["user_id"]))
+        if not _reauthenticate(user):
+            return redirect(url_for("account.profile", user_id=session["user_id"]))
+        # The recovery address changed: tell the OLD one so a takeover is noticed.
+        sec.send_email(user["email"], "Your e-mail address was changed", f"New address: {new_email}")
+        sec.audit("email_changed", user=user["username"])
     db.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, session["user_id"]))
     db.commit()
     flash(t("account.flash_email_updated"), "success")
@@ -84,6 +115,8 @@ def change_password():
     # making the CSRF impact a full account takeover rather than a nuisance change.
     new_password = request.form.get("password", "")
     db = get_db()
+    if current_app.config["AUTH_SECURE"]:
+        return _change_password_secure(new_password)
     db.execute(
         "UPDATE users SET password_hash = ? WHERE id = ?",
         (hash_password(new_password), session["user_id"]),
@@ -91,3 +124,26 @@ def change_password():
     db.commit()
     flash(t("account.flash_password_updated"), "success")
     return redirect(url_for("account.profile", user_id=session["user_id"]))
+
+
+def _change_password_secure(new_password):
+    profile_url = url_for("account.profile", user_id=session["user_id"])
+    user = get_user_by_id(session["user_id"])
+    if not _reauthenticate(user):
+        return redirect(profile_url)
+    problems = sec.validate_password(new_password, user["username"], user["email"])
+    if problems:
+        sec.flash_password_problems(problems)
+        return redirect(profile_url)
+    if sec.password_in_history(user["id"], new_password):
+        flash(t("auth.pw_reused", count=sec.PASSWORD_HISTORY), "danger")
+        return redirect(profile_url)
+
+    sec.set_password(user["id"], new_password)
+    # Kill every other session and re-issue this one, so a stolen cookie dies with the old password.
+    sec.revoke_sessions(user["id"])
+    sec.start_session(get_user_by_id(user["id"]))
+    sec.audit("password_changed", user=user["username"])
+    sec.send_email(user["email"], "Your password was changed", "If this wasn't you, contact support immediately.")
+    flash(t("account.flash_password_updated"), "success")
+    return redirect(profile_url)

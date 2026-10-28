@@ -10,4 +10,4 @@ if __name__ == "__main__":
     # a fully isolated lab network. PORT is overridable (e.g. macOS reserves
     # 5000 for AirPlay Receiver on some systems).
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=not app.config["AUTH_SECURE"])

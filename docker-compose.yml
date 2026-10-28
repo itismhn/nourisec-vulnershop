@@ -6,10 +6,15 @@ services:
       # Bind to loopback only by default - this app is meant for an isolated
       # lab, never for exposure on a shared or public network. Change the
       # left-hand side only if you fully understand the risk (see README).
-      - "127.0.0.1:5000:5000"
+      # Inside an isolated lab VM, BIND_ADDR=0.0.0.0 makes it reachable from the host PC.
+      - "${BIND_ADDR:-127.0.0.1}:5000:5000"
     volumes:
       - vulnershop_db:/app/instance
       - vulnershop_uploads:/app/app/uploads
+    environment:
+      # "vulnerable" (default) or "secure" - see AUTH_HARDENING.md. After switching,
+      # reseed: docker compose exec vulnershop python scripts/reset_db.py
+      VULNERSHOP_AUTH_MODE: ${VULNERSHOP_AUTH_MODE:-vulnerable}
     networks:
       - vulnershop_net
     # No other services, no external egress required by the app itself.

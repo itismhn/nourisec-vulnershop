@@ -68,6 +68,7 @@
         {% endif %}
 
         <form method="post" action="{{ url_for('shop.cart_add', product_id=product['id']) }}">
+{{ csrf_input() }}
             <div class="field">
                 <label>{{ t('product.quantity_label') }}</label>
                 <input type="number" name="qty" value="1" min="1" style="max-width:120px;">
@@ -110,6 +111,7 @@
 
     {% if session.get('user_id') %}
     <form method="post" action="{{ url_for('reviews.add_review', product_id=product['id']) }}" class="card-block">
+{{ csrf_input() }}
         <div class="field">
             <label>{{ t('product.your_rating') }}</label>
             <select name="rating">

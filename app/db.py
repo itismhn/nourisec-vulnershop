@@ -21,7 +21,14 @@ def init_db():
     db = get_db()
     with current_app.open_resource("schema.sql") as f:
         db.executescript(f.read().decode("utf8"))
+    init_auth_tables()
     db.commit()
+
+
+def init_auth_tables():
+    # Idempotent: also used at startup in secure mode to upgrade an older database.
+    with current_app.open_resource("auth_schema.sql") as f:
+        get_db().executescript(f.read().decode("utf8"))
 
 
 def init_app(app):

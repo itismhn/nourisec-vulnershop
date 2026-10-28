@@ -4,6 +4,7 @@
 <div class="form-page">
     <h1>{{ t('contact.title') }}</h1>
     <form method="post">
+{{ csrf_input() }}
         <div class="field">
             <label>{{ t('contact.name_label') }}</label>
             <input type="text" name="name">

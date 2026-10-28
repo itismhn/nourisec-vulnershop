@@ -13,20 +13,25 @@
         <h3 style="font-size:15px;">{{ t('profile.account_settings') }}</h3>
 
         <form method="post" action="{{ url_for('account.change_email') }}" class="field">
+{{ csrf_input() }}
             <label>{{ t('profile.change_email') }}</label>
             <div style="display:flex; gap:8px;">
                 <input type="email" name="email" value="{{ profile_user['email'] }}">
+                {% if AUTH_SECURE %}<input type="password" name="current_password" autocomplete="current-password" placeholder="{{ t('auth.current_password_label') }}" required>{% endif %}
                 <button class="btn btn-outline">{{ t('common.update_btn') }}</button>
             </div>
         </form>
         <form method="post" action="{{ url_for('account.change_password') }}" class="field">
+{{ csrf_input() }}
             <label>{{ t('profile.change_password') }}</label>
             <div style="display:flex; gap:8px;">
-                <input type="password" name="password">
+                {% if AUTH_SECURE %}<input type="password" name="current_password" autocomplete="current-password" placeholder="{{ t('auth.current_password_label') }}" required>{% endif %}
+                <input type="password" name="password"{% if AUTH_SECURE %} autocomplete="new-password" minlength="10" maxlength="128" required placeholder="{{ t('auth.new_password_label') }}"{% endif %}>
                 <button class="btn btn-outline">{{ t('common.update_btn') }}</button>
             </div>
         </form>
         <form method="post" action="{{ url_for('uploads.upload_avatar') }}" enctype="multipart/form-data" class="field">
+{{ csrf_input() }}
             <label>{{ t('profile.upload_avatar') }}</label>
             <div style="display:flex; gap:8px;">
                 <input type="file" name="avatar">

@@ -1,9 +1,10 @@
 import os
 
-from flask import Flask, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, abort, redirect, render_template, request, send_from_directory, session, url_for
 
 from app import db as db_module
 from app.config import Config
+from app.security import init_security
 from app.i18n import SUPPORTED_LOCALES, category_label, get_locale, product_name, t
 
 BANNER_TEXT = (
@@ -22,6 +23,7 @@ def create_app():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db_module.init_app(app)
+    init_security(app)  # no-op helpers in vulnerable mode; full hardening in secure mode
 
     @app.context_processor
     def inject_banner():
@@ -153,8 +155,11 @@ def create_app():
     def uploaded_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
-    @app.route("/dev/last-reset")
+    # Secure mode ships without this debug page: it is the WSTG-ATHN-09 reset-link leak.
+    @app.route("/dev/last-reset", endpoint="dev_last_reset")
     def dev_last_reset():
+        if app.config["AUTH_SECURE"]:
+            abort(404)
         # VULN: Broken Authentication - insecure "forgot password" flow debug leftover (WSTG-ATHN-04)
         # Simulates a dev-only page that was never removed, exposing the last password-reset link
         # generated for ANY user (not scoped to the requester) to anyone who finds this URL.

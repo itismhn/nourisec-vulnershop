@@ -4,6 +4,7 @@
 <h1 class="page-title">{{ t('admin.fetch_image_title') }}</h1>
 <p style="color:var(--ink-soft);">{{ t('admin.fetch_image_desc') }}</p>
 <form method="post" class="card-block" style="max-width:520px; display:flex; gap:8px; margin-bottom:20px;">
+{{ csrf_input() }}
     <input type="text" name="url" value="{{ url }}" placeholder="http://..." style="flex:1; border:1.5px solid var(--line); border-radius:10px; padding:11px 14px; font-family:inherit; direction:ltr;">
     <button class="btn btn-primary">{{ t('admin.fetch_btn') }}</button>
 </form>

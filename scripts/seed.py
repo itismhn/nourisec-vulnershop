@@ -4,9 +4,12 @@ Run standalone with `python scripts/seed.py`, or import `seed()` (used by the
 admin "Reset Database" button in app/admin.py).
 """
 import os
+import secrets
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from flask import current_app
 
 from app import create_app
 from app.db import get_db, init_db
@@ -87,8 +90,25 @@ USERS = [
 ]
 
 
+def _accounts():
+    """Vulnerable mode: the fixed default credentials the lab teaches against.
+
+    Secure mode (WSTG-ATHN-02): no default or guessable credentials. Each account gets a
+    random password printed once below (override with SEED_PASSWORD_<USERNAME>), and the
+    leftover svc_backup staging account is not created at all.
+    """
+    if not current_app.config["AUTH_SECURE"]:
+        return USERS
+    return [
+        (u, e, os.environ.get(f"SEED_PASSWORD_{u.upper()}") or secrets.token_urlsafe(12), r)
+        for u, e, _, r in USERS
+        if u != "svc_backup"
+    ]
+
+
 def seed():
     db = get_db()
+    accounts = _accounts()
 
     for name, description, price, original_price, category, image in PRODUCTS:
         db.execute(
@@ -98,7 +118,7 @@ def seed():
         )
     db.commit()
 
-    for username, email, password, role in USERS:
+    for username, email, password, role in accounts:
         db.execute(
             "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
             (username, email, hash_password(password), role),
@@ -153,7 +173,7 @@ def seed():
     print("Seeded database with:")
     print(f"  {len(PRODUCTS)} products")
     print("  users:")
-    for username, _, password, role in USERS:
+    for username, _, password, role in accounts:
         print(f"    {username} / {password}  (role={role})")
     print("  2 sample orders, 2 sample reviews")
 

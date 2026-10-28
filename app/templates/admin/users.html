@@ -12,7 +12,7 @@
                 <td>{{ u['username'] }}</td>
                 <td>{{ u['email'] }}</td>
                 <td>{{ u['role'] }}</td>
-                <td><code style="direction:ltr; display:inline-block;">{{ u['password_hash'] }}</code></td>
+                <td>{% if AUTH_SECURE %}<span title="hidden in secure mode">••••••••</span>{% else %}<code style="direction:ltr; display:inline-block;">{{ u['password_hash'] }}</code>{% endif %}</td>
             </tr>
         {% endfor %}
         </tbody>
