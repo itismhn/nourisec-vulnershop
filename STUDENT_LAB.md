@@ -36,12 +36,29 @@ and the exact steps to trigger the bug — without spoiling the fix. Don't skip 
 
 ## Phase 2 — Authentication (WSTG-ATHN)
 
+Covers every test in OWASP WSTG v4.2 §4.4. Work through it on the default build, then repeat the
+whole table against the hardened build (see "Retest" below) and note what changed.
+
 | # | WSTG ID | Task | Hint |
 |---|---------|------|------|
-| 1 | WSTG-ATHN-02 | Default credentials | Every store has an admin. Try the obvious username with a few obvious passwords before anything fancier. |
-| 2 | WSTG-ATHN-03 | Lockout / rate limiting | Fail a login several times in a row. Does anything stop you? |
-| 3 | WSTG-ATHN-07 | Password policy | What's the weakest password the registration form will accept? |
-| 4 | WSTG-ATHN-04 | Forgot-password flow | Trigger it for a username you don't own. Is the token something you could predict without ever seeing it delivered? Also: is there a leftover debug page anywhere that might show you what a real reset "email" would have contained? |
+| 1 | WSTG-ATHN-01 | Credentials over an encrypted channel | Watch the login request in your proxy. Is it sent by POST? Does the site push you to HTTPS, and what do the `Set-Cookie` flags and response headers say? (Plain HTTP is expected on localhost — the question is what the app *does* about it.) |
+| 2 | WSTG-ATHN-02 | Default credentials | Every store has an admin. Try the obvious username with a few obvious passwords before anything fancier. Also look for accounts nobody remembered to remove. |
+| 3 | WSTG-ATHN-03 | Lockout / rate limiting | Fail a login several times in a row. Does anything stop you? If something does: does it also apply to usernames that don't exist, and does it ever unlock? |
+| 4 | WSTG-ATHN-04 | Bypassing the authentication schema | Three angles: break the login query, open "logged-in only" pages directly without logging in, and tamper with what the server trusts after login (cookie contents, your role). |
+| 5 | WSTG-ATHN-04 | Session handling after login/logout | Copy your session cookie, log out, then replay it. Compare the cookie before and after logging in. Does an idle session ever expire? |
+| 6 | WSTG-ATHN-05 | Remember-password behaviour | Does the app store credentials in cookies or local storage? What do the form fields tell the browser about autofill? |
+| 7 | WSTG-ATHN-06 | Browser cache | Log in, visit your profile, log out, press Back. What shows? Check the cache-related response headers on authenticated pages. |
+| 8 | WSTG-ATHN-07 | Password policy | What's the weakest password the registration form will accept? Try short ones, common ones, your own username, and one reused from a previous change. |
+| 9 | WSTG-ATHN-08 | Security questions | Does recovery rely on guessable personal answers anywhere? (Note it as "not applicable" in your report if there isn't any.) |
+| 10 | WSTG-ATHN-09 | Forgot-password flow | Trigger it for a username you don't own. Is the token something you could predict without ever seeing it delivered? Does it expire, work twice, or survive a newer request? Do known and unknown users get identical answers? Also: is there a leftover debug page anywhere that might show you what a real reset "email" would have contained? |
+| 11 | WSTG-ATHN-09 | Changing password / email | What does the account page ask for before changing a password or email? Could another website trigger it for a logged-in victim? After a change, are your *other* sessions still alive? |
+| 12 | WSTG-ATHN-10 | Weaker authentication in alternative channels | The admin area is a different door to the same house. Does it hold its users to the same standard as the public login? Compare what a plain customer can reach. |
+
+**Retest against the hardened build.** Start the app with `VULNERSHOP_AUTH_MODE=secure` and
+re-run `python scripts/reset_db.py` (the default accounts no longer exist; the seed script
+prints the new ones). Repeat tasks 1–12 and record, per task, *vulnerable → hardened*. For each
+control you can't break, write one sentence on how you'd verify it in a real engagement. The
+list of controls is in [`AUTH_HARDENING.md`](AUTH_HARDENING.md) — read it **after** your retest.
 
 ---
 
