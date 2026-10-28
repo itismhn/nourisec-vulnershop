@@ -4,6 +4,8 @@ DROP TABLE IF EXISTS auth_attempts;
 DROP TABLE IF EXISTS auth_sessions;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS password_history;
+DROP TABLE IF EXISTS coupon_redemptions;
+DROP TABLE IF EXISTS coupons;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS reviews;
@@ -32,6 +34,8 @@ CREATE TABLE products (
     original_price REAL,
     category TEXT,
     image TEXT,
+    stock INTEGER NOT NULL DEFAULT 50,
+    purchase_limit INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -50,6 +54,10 @@ CREATE TABLE orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     total REAL NOT NULL,
+    subtotal REAL,
+    discount REAL NOT NULL DEFAULT 0,
+    coupon_code TEXT,
+    refunded REAL NOT NULL DEFAULT 0,
     status TEXT DEFAULT 'completed',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES users(id)
@@ -71,4 +79,21 @@ CREATE TABLE contact_messages (
     email TEXT,
     message TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- WSTG-BUSL-05: promo codes. `single_use` means "once per customer" (enforced only in secure mode).
+CREATE TABLE coupons (
+    code TEXT PRIMARY KEY COLLATE NOCASE,
+    percent INTEGER NOT NULL,
+    expires_at TEXT NOT NULL,
+    single_use INTEGER NOT NULL DEFAULT 1
+);
+
+-- Secure mode records each redemption; the UNIQUE key makes "once per customer" race-proof.
+CREATE TABLE coupon_redemptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL COLLATE NOCASE,
+    user_id INTEGER NOT NULL,
+    order_id INTEGER NOT NULL,
+    UNIQUE(code, user_id)
 );

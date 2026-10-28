@@ -44,9 +44,21 @@ class Config:
     # shows full Werkzeug stack traces (file paths, source, framework version) on any unhandled error.
     DEBUG = not AUTH_SECURE
 
+    # --- Business-logic settings (WSTG-BUSL) ---
+    # Simulated payment-gateway latency between "check stock" and "reserve stock". It widens the
+    # race window the lab teaches (BUSL-04); secure mode closes it with an atomic guarded UPDATE.
+    CHECKOUT_LATENCY = float(os.environ.get("VULNERSHOP_CHECKOUT_LATENCY", "0.25"))
+    MAX_QTY_PER_LINE = 10          # secure mode: units of one product per cart line
+    MAX_CART_LINES = 20
+    ORDER_PAY_WINDOW = 15 * 60     # secure mode: seconds an unpaid order holds its stock
+    REFUND_WINDOW_DAYS = 7         # matches the "7-day return policy" shown on product pages
+
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
     # VULN: Insecure File Upload (WSTG-BUSL-09) - allow-list checks extension only, not content
     ALLOWED_UPLOAD_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "svg"}
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+    # Secure mode (WSTG-BUSL-08/09): raster images only (no SVG), verified by content, small.
+    SECURE_UPLOAD_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
+    AVATAR_MAX_BYTES = 1024 * 1024
 
     BACKUP_DIR = os.path.join(BASE_DIR, "backup")

@@ -92,7 +92,7 @@ def products():
         price = request.form.get("price", "0")
         category = request.form.get("category", "")
         if current_app.config["AUTH_SECURE"]:
-            # WSTG-INPV: type/range/length/allow-list checks instead of a 500 on float("abc").
+            # WSTG-INPV / BUSL-01: type/range/length/allow-list checks instead of a 500 on float("abc").
             try:
                 price_ok = 0 < float(price) <= validation.PRODUCT_PRICE_MAX
             except (TypeError, ValueError):
@@ -106,6 +106,7 @@ def products():
             ):
                 flash(t("input.flash_invalid"), "danger")
                 return redirect(url_for("admin.products"))
+        # VULN (WSTG-BUSL-01): float() happily takes 0, negative numbers, "nan" and "inf".
         db.execute(
             "INSERT INTO products (name, description, price, category, image) VALUES (?, ?, ?, ?, ?)",
             (name, description, float(price), category, "placeholder.svg"),

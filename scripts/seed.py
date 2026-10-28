@@ -137,6 +137,16 @@ def seed():
         "SELECT id FROM products WHERE name LIKE 'ساعت هوشمند%'"
     ).fetchone()["id"]
 
+    # Business-logic fixtures (WSTG-BUSL): a per-customer purchase limit, a nearly sold-out
+    # flash-sale item, and promo codes (one of them long expired).
+    db.execute("UPDATE products SET purchase_limit = 2 WHERE id = ?", (saffron_id,))
+    db.execute("UPDATE products SET stock = 3 WHERE id = ?", (watch_id,))
+    db.executemany(
+        "INSERT INTO coupons (code, percent, expires_at, single_use) VALUES (?, ?, ?, ?)",
+        [("WELCOME10", 10, "2099-12-31", 1), ("NOWRUZ25", 25, "2024-04-01", 1)],
+    )
+    db.commit()
+
     db.execute(
         "INSERT INTO reviews (product_id, user_id, username, body, rating) VALUES (?, ?, ?, ?, ?)",
         (saffron_id, alice_id, "alice", "کیفیت واقعا عالی بود، عطر زعفران به محض باز کردن بسته کل آشپزخانه رو پر کرد.", 5),
@@ -150,8 +160,8 @@ def seed():
     # order 1 -> alice, order 2 -> bob (kept stable: INSTRUCTOR_GUIDE.md / STUDENT_LAB.md
     # reference these exact IDs for the IDOR walkthrough).
     cur = db.execute(
-        "INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'completed')",
-        (alice_id, 285000),
+        "INSERT INTO orders (user_id, total, subtotal, status) VALUES (?, ?, ?, 'completed')",
+        (alice_id, 285000, 285000),
     )
     order1_id = cur.lastrowid
     db.execute(
@@ -160,8 +170,8 @@ def seed():
     )
 
     cur = db.execute(
-        "INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'completed')",
-        (bob_id, 29900000),
+        "INSERT INTO orders (user_id, total, subtotal, status) VALUES (?, ?, ?, 'completed')",
+        (bob_id, 29900000, 29900000),
     )
     order2_id = cur.lastrowid
     db.execute(
@@ -175,7 +185,7 @@ def seed():
     print("  users:")
     for username, _, password, role in accounts:
         print(f"    {username} / {password}  (role={role})")
-    print("  2 sample orders, 2 sample reviews")
+    print("  2 sample orders, 2 sample reviews, 2 coupons")
 
 
 if __name__ == "__main__":

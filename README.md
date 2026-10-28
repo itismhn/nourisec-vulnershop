@@ -8,8 +8,8 @@
   <img src="https://img.shields.io/badge/OWASP-WSTG%20%2F%20Top%2010-black?style=flat-square" alt="OWASP WSTG / Top 10" />
 </p>
 
-A fake online store (Persian-themed storefront, "نوری‌شاپ") built with **11 intentional
-security bugs**, used as the hands-on lab for the [NouriSec](https://nourisec.com)
+A fake online store (Persian-themed storefront, "نوری‌شاپ") built with **12 intentional
+security bug classes**, used as the hands-on lab for the [NouriSec](https://nourisec.com)
 pentesting course. Every product, user, and order is fake and seeded by a script —
 nothing here is a real store, and nothing here should ever be deployed anywhere but
 your own machine.
@@ -43,17 +43,18 @@ and the OWASP Top 10.
 | 5 | Broken Authentication — no lockout, weak password policy, leaky reset flow | Authentication | WSTG-ATHN-02/03/04/07 |
 | 6 | Security Misconfiguration — exposed `.git`, backups, directory listing, debug pages | Config | WSTG-CONF-01/02/03/06 |
 | 7 | CSRF — account settings forms | Session Mgmt | WSTG-SESS-05 |
-| 8 | Insecure File Upload — SVG with embedded script | Business Logic | WSTG-BUSL-09 |
+| 8 | Insecure File Upload — extension-only checks, SVG with embedded script, EICAR/polyglots accepted | Business Logic | WSTG-BUSL-08/09 |
 | 9 | Sensitive Data Exposure — unsalted hashes, hardcoded API key | Cryptography | WSTG-CRYP-04 |
 | 10 | Command Injection — admin "ping" tool | Input Validation | WSTG-INPV-12 |
 | 11 | SSRF — admin "fetch image by URL" tool | Input Validation | WSTG-INPV-19 |
+| 12 | Business Logic Flaws — negative quantities and ratings, client-trusted total, forgeable payment callback, stock race, reusable coupons and refunds, skippable order workflow, no abuse throttling | Business Logic | WSTG-BUSL-01..07 |
 
 Every one of these is confirmed working end-to-end, with a staged path from "find it"
 to "exploit it" to "here's the fix" — see [Docs](#docs) below.
 
 > **Hardening mode:** set `VULNERSHOP_AUTH_MODE=secure` to run the same app with a
-> WSTG-4.4/4.5/4.7-aligned authentication, authorization and input-validation layer (lockout, safe reset flow, server-side
-> sessions, password policy, admin role checks, IDOR ownership checks, output encoding, parameterised queries, SSRF allow-listing, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
+> WSTG-4.4/4.5/4.7-aligned authentication, authorization and input-validation and business-logic layer (lockout, safe reset flow, server-side
+> sessions, password policy, admin role checks, IDOR ownership checks, output encoding, parameterised queries, SSRF allow-listing, server-side totals, atomic stock, throttling, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
 
 ## Run it
 
@@ -137,7 +138,8 @@ When you're done (or want a clean slate for someone else), reset everything:
 python scripts/reset_db.py
 ```
 
-or click **Reset Database** in the admin panel (`/admin`) while logged in.
+or click **Reset Database** in the admin panel (`/admin`) while logged in. Re-run it after
+pulling an update that changes the schema (Phase 5 added stock, coupons and order columns).
 
 ## Phase 2: Authentication tips
 
@@ -201,6 +203,26 @@ Controls and rationale: [`AUTH_HARDENING.md`](AUTH_HARDENING.md#input-validation
 | INPV-19 | Fetch tool trusts any URL | `http://127.0.0.1:5000/...` in `/admin/fetch-image` (**Docker only**) | 400; only public http(s) images |
 
 Automated checks: `python -m unittest discover -s tests` (`tests/test_inpv_wstg.py`).
+
+## Phase 5: Business logic tips
+
+Phase 5 is the OWASP WSTG v4.2 business-logic chapter (§4.10). Same drill: break it in `vulnerable`,
+then confirm `secure` holds. Buy something first (cart → discount code → checkout → pay → order page);
+the test cards are on the payment page (`4242 4242 4242 4242` pays, `4000 0000 0000 0002` is declined).
+Codes: `WELCOME10` works; `NOWRUZ25` is a retired campaign. Controls: [`AUTH_HARDENING.md`](AUTH_HARDENING.md#business-logic-coverage-wstg-v42-410).
+
+| WSTG | Tip | How to achieve | Secure mode result |
+|------|-----|----------------|--------------------|
+| BUSL-01 | Numbers the form never offers | Add a product with `qty=-5`, check out; post a review with `rating=9999` | Quantity 1–10 and rating 1–5 only; bad values leave the cart unchanged |
+| BUSL-02 | The gateway "calls back" through the browser | Pay, note the redirect to `/payment/callback?order_id=…&status=success`, then call it for an unpaid order while logged out | Route returns 404; the server marks orders paid itself |
+| BUSL-03 | Hidden field named `total` on checkout | Edit it to `1` before submitting | Posted total ignored; recomputed from database prices |
+| BUSL-04 | Check-then-act on stock; orders never expire | Two parallel checkouts for the 3-left smartwatch; pay an order after back-dating it | Atomic stock reservation; unpaid orders cancel after 15 minutes and restock |
+| BUSL-05 | "Once", "limit 2", "7 days" are only text | Apply `WELCOME10` many times; refund the same order repeatedly; review one product five times | Single-use, non-stackable codes; purchase limits; one refund; one review |
+| BUSL-06 | Steps trust that the previous step happened | Refund or cancel an unpaid order; pay a cancelled one; review without buying | Each action is only valid from the right state |
+| BUSL-07 | No one is watching | 20 wrong coupon codes, 15 declined cards, 20 contact messages | `429` after 5 (reviews: 3/hour), generic messages, audit log events |
+| BUSL-08/09 | Only the file name is checked | Upload `shell.php.png` containing HTML, an SVG with `<script>`, the EICAR string as `.png` | Magic bytes + content scan + 1 MB cap, no SVG, random stored name, sandboxed responses |
+
+Automated checks: `python -m unittest discover -s tests` (`tests/test_busl_wstg.py` runs every attack against both builds).
 
 ## Docs
 

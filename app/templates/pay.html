@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ t('pay.title') }} - {{ t('site.name') }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ t('pay.title') }}</h1>
+<div class="alert alert-info" style="max-width:480px;">{{ t('pay.test_cards') }}</div>
+<p style="color:var(--ink-soft);">{{ t('pay.order_ref', id=order['id']|fanum, total=order['total']|toman, currency=t('currency.toman')) }}</p>
+
+<form method="post" class="form-page" style="margin:20px 0;">
+{{ csrf_input() }}
+    <div class="field">
+        <label>{{ t('checkout.card_number') }}</label>
+        <input type="text" name="card_number" inputmode="numeric" autocomplete="off" placeholder="{{ '1234 5678 9012 3456' if locale == 'en' else '۱۲۳۴ ۵۶۷۸ ۹۰۱۲ ۳۴۵۶' }}">
+    </div>
+    <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:1;">
+            <label>{{ t('checkout.expiry') }}</label>
+            <input type="text" placeholder="{{ '04/06' if locale == 'en' else '۰۴/۰۶' }}">
+        </div>
+        <div class="field" style="flex:1;">
+            <label>{{ t('checkout.cvv') }}</label>
+            <input type="text" placeholder="{{ '123' if locale == 'en' else '۱۲۳' }}">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">{{ t('pay.submit') }}</button>
+</form>
+{% endblock %}

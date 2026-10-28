@@ -217,12 +217,68 @@ breakout"). Read the controls list **after** your retest.
 
 ## Phase 5 — Business Logic & Advanced (WSTG-BUSL)
 
+Business-logic bugs are different from the injection bugs in Phase 4: every request is *valid*,
+the app just never asked "should this person be able to do this, now, this many times, in this
+order?". A scanner will not find them — you have to understand what the shop is *supposed* to
+do, then do something it did not expect. All nine WSTG-4.10 tests have something to find here.
+
+**1. Learn the intended flow first.** Buy something normally and write down each step and what
+state the order is in after it: product page → cart → (discount code) → checkout → payment →
+order page (pay / cancel / refund). Then ask of every step: what does it assume about the step
+before it? About the numbers the browser sends? About how often and how fast it is called?
+
+**2. Use a proxy and two accounts.** Intercept each request in Burp/ZAP. Keep two customers
+(for limits and ownership) and one anonymous window. Use the "test cards" shown on the payment
+page — never a real card.
+
+**3. Per-test nudges** (where to point your tools, not what to type):
+
+- **BUSL-01** — every number and text field is a candidate: quantity, rating, price, message.
+  Try zero, negative, huge, fractional, empty, non-numeric and very long values, then look at
+  what the *order total* and the *product rating* become.
+- **BUSL-02** — find a request the browser makes that the user was never meant to make by
+  hand (look at where the payment page sends you afterwards). Who is allowed to call it?
+- **BUSL-03** — price and totals should come from the server. Look at the checkout form's
+  hidden fields, and at what the session cookie holds and how it is signed.
+- **BUSL-04** — time matters twice: *racing* (two requests at once) and *expiry* (something
+  that should not last forever). The smartwatch has almost sold out — send two checkouts at
+  the same moment (Burp "send group in parallel", or two scripts).
+- **BUSL-05** — find anything with a limit written on it ("once per customer", "limit 2",
+  "7-day refund") and push past it by repeating the call, in a different order, or in parallel.
+- **BUSL-06** — try each step out of order, skip one, or repeat one: pay without checkout,
+  refund something unpaid, pay something cancelled, review something you never bought.
+- **BUSL-07** — does the app notice abuse? Fire the same failing request 20 times (a wrong
+  discount code, a declined card, the contact form). Note the status codes and whether anything
+  ever slows you down or gets logged.
+- **BUSL-08 / 09** — the avatar upload. Try a file whose *name* says one thing and whose
+  *content* says another; then files whose content is actively hostile. What does the server
+  call it when it hands it back, and what would a browser do with it?
+
 | # | WSTG ID | Task | Hint |
 |---|---------|------|------|
-| 1 | WSTG-SESS-05 | CSRF | Find a state-changing form (account settings) with no visible token. Could you build an external HTML page that submits it on a logged-in victim's behalf? |
-| 2 | WSTG-BUSL-09 | Insecure file upload | The avatar/profile-picture upload accepts more file types than you might expect. What happens if the file itself contains a script, and what content type does the server hand it back as? |
-| 3 | (advanced) | Command injection | There's an admin "health check" tool that pings a host you supply. What happens if your input isn't just a hostname? *Only attempt this inside the provided Docker sandbox — see README.* |
-| 4 | (advanced) | SSRF | There's an admin "fetch image by URL" tool. Where else, besides a real image host, might the server be willing to fetch from — including addresses that only make sense from the server's own point of view? *Docker sandbox only.* |
+| 1 | WSTG-BUSL-01 | Business-logic data validation | Put an unexpected quantity in the cart and complete checkout. Then post a review with a rating the form does not offer. What does the shop now think the order total / product average is? |
+| 2 | WSTG-BUSL-02 | Ability to forge requests | After a successful payment the browser is sent somewhere with a result in the URL. Could someone who never paid send that request themselves — and would they even need to be logged in? |
+| 3 | WSTG-BUSL-03 | Integrity checks | Inspect the checkout form in dev tools. Is there a value there the server should never have trusted? Change it and place the order. |
+| 4 | WSTG-BUSL-04 | Process timing | The smartwatch has 3 left. Can two customers both get 2? Separately: what happens to an unpaid order left for a month? |
+| 5 | WSTG-BUSL-05 | Number of times a function can be used | The welcome code is "once per customer" and the saffron says "limit 2". Apply the code repeatedly, even after it is spent. Request a refund more than once. How many reviews can one customer leave? |
+| 6 | WSTG-BUSL-06 | Circumvention of work flows | Reach "paid" without paying. Refund an order that was never paid, or one from last year. Pay for an order you already cancelled. Review a product you never bought. |
+| 7 | WSTG-BUSL-07 | Defenses against application misuse | Brute-force discount codes, "test" stolen cards against the payment form, and flood the contact form. Is there any lockout, throttle or alert? What would an attacker gain from each? |
+| 8 | WSTG-BUSL-08 | Upload of unexpected file types | The avatar upload takes pictures. What else will it take if you only change the file name? Does it care what the file contains, or how big it is? |
+| 9 | WSTG-BUSL-09 | Upload of malicious files | What happens if the file is an SVG carrying a script, a picture with script hidden after the image header, or the EICAR antivirus test string — and what content type does the server hand it back as? |
+| 10 | WSTG-SESS-05 | CSRF | Find a state-changing form (account settings) with no visible token. Could you build an external HTML page that submits it on a logged-in victim's behalf? |
+| 11 | WSTG-INPV-12 | Command injection (advanced) | There's an admin "health check" tool that pings a host you supply. What happens if your input isn't just a hostname? *Only attempt this inside the provided Docker sandbox — see README.* |
+| 12 | WSTG-INPV-19 | SSRF (advanced) | There's an admin "fetch image by URL" tool. Where else, besides a real image host, might the server be willing to fetch from — including addresses that only make sense from the server's own point of view? *Docker sandbox only.* |
+
+**Record for each test:** the exact request you changed, the state of the order/cart/account
+*before and after*, and the business impact in money or trust terms ("a customer can buy a
+3,000,000-toman watch for 1 toman"), not just "parameter is unvalidated". Rate impact by what an
+attacker repeats at scale.
+
+**Retest in secure mode.** Restart with `VULNERSHOP_AUTH_MODE=secure`, reseed
+(`python scripts/reset_db.py`), and repeat tests 1–9. Each should be refused (a `4xx`, a
+flash message, or an unchanged order/stock/credit total); note the response next to your
+"before" evidence. The controls are listed in [`AUTH_HARDENING.md`](AUTH_HARDENING.md#business-logic-coverage-wstg-v42-410).
+Tests 10–12 are checked in secure mode too (CSRF token, no shell for `ping`, public-address allow-list for the image fetcher) — see the Phase 4 notes in the README.
 
 ---
 

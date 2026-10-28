@@ -76,7 +76,7 @@ class TestATHZ01Traversal(AuthzBase):
     def post_avatar(self, client, filename):
         import io
         tok = __import__("test_auth_wstg").token_of(client.get("/profile/2").get_data(as_text=True))
-        return client.post("/account/avatar", data={"csrf_token": tok, "avatar": (io.BytesIO(b"x"), filename)},
+        return client.post("/account/avatar", data={"csrf_token": tok, "avatar": (io.BytesIO(b"\x89PNG\r\n\x1a\n" + bytes(16)), filename)},
                            content_type="multipart/form-data")
 
 

@@ -4,22 +4,23 @@
 <h1 class="page-title">{{ t('checkout.title') }}</h1>
 <div class="alert alert-info" style="max-width:480px;">{{ t('checkout.info_alert') }}</div>
 
+<div class="card-block" style="max-width:480px; margin:20px 0;">
+    {% for item in items %}
+    <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:8px;">
+        <span>{{ product_name(item.product['name']) }} &times; {{ item.qty|fanum }}</span>
+        <b>{{ item.subtotal|toman }} {{ t('currency.toman') }}</b>
+    </div>
+    {% endfor %}
+    <div style="border-top:1px solid var(--line); margin-top:10px; padding-top:10px; font-size:13.5px;">
+        <div style="display:flex; justify-content:space-between;"><span>{{ t('cart.items_total') }}</span><b>{{ subtotal|toman }} {{ t('currency.toman') }}</b></div>
+        {% if discount %}<div style="display:flex; justify-content:space-between;"><span>{{ t('cart.discount_label') }}</span><b>-{{ discount|toman }} {{ t('currency.toman') }}</b></div>{% endif %}
+        <div style="display:flex; justify-content:space-between; font-size:15px; margin-top:6px;"><span>{{ t('cart.total_payable') }}</span><b>{{ total|toman }} {{ t('currency.toman') }}</b></div>
+    </div>
+</div>
+
 <form method="post" class="form-page" style="margin:20px 0;">
 {{ csrf_input() }}
-    <div class="field">
-        <label>{{ t('checkout.card_number') }}</label>
-        <input type="text" placeholder="{{ '1234 5678 9012 3456' if locale == 'en' else '۱۲۳۴ ۵۶۷۸ ۹۰۱۲ ۳۴۵۶' }}">
-    </div>
-    <div style="display:flex; gap:12px;">
-        <div class="field" style="flex:1;">
-            <label>{{ t('checkout.expiry') }}</label>
-            <input type="text" placeholder="{{ '04/06' if locale == 'en' else '۰۴/۰۶' }}">
-        </div>
-        <div class="field" style="flex:1;">
-            <label>{{ t('checkout.cvv') }}</label>
-            <input type="text" placeholder="{{ '123' if locale == 'en' else '۱۲۳' }}">
-        </div>
-    </div>
-    <button type="submit" class="btn btn-primary btn-block">{{ t('checkout.submit') }}</button>
+    {% if not AUTH_SECURE %}<input type="hidden" name="total" value="{{ total }}">{% endif %}
+    <button type="submit" class="btn btn-primary btn-block">{{ t('checkout.confirm_btn') }}</button>
 </form>
 {% endblock %}

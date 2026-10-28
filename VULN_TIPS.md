@@ -62,6 +62,24 @@ what's actually *inside* the file.
 `<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>` as your
 avatar, then open the uploaded file directly from `/uploads/<filename>` in a new tab.
 
+### 8b. Business Logic Flaws — WSTG-BUSL-01..07
+**Tip:** The shop trusts the browser, trusts that steps happen in order, and never asks "how
+often?". Buy something once normally first (test card `4242 4242 4242 4242`).
+**How to achieve:**
+- BUSL-01: add a product with `qty=-5` and check out; post a review with `rating=9999`.
+- BUSL-02/06: after paying, you are redirected to `/payment/callback?order_id=…&status=success`.
+  Open it yourself, logged out, for an order you never paid. Also `POST /orders/<id>/refund` on an unpaid order.
+- BUSL-03: on `/checkout`, edit the hidden `total` input to `1` in dev tools.
+- BUSL-04: send two `POST /checkout` at the same time for the smartwatch (3 in stock, 2 each).
+- BUSL-05: apply `WELCOME10` ten times; refund the same order three times; review one product repeatedly.
+- BUSL-07: send 20 wrong coupon codes or declined cards (`4000 0000 0000 0002`) and note nothing stops you.
+
+### 8c. Upload of unexpected / malicious files — WSTG-BUSL-08/09
+**Tip:** Same avatar form as #8, but think about *content*, not just the name.
+**How to achieve:** upload `shell.php.png` whose body is `<?php … ?>` or HTML; a `.png` holding the
+EICAR test string; a GIF (`GIF89a`) followed by `<script>alert(1)</script>`. All are accepted and
+served from `/uploads/`.
+
 ### 9. Sensitive Data Exposure — Easy — WSTG-CRYP-04
 **Tip:** Passwords aren't hashed the way you'd hope, and a "secret" key made it into
 client-side code.

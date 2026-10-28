@@ -376,7 +376,8 @@ def init_security(app):
     def _secure_headers(resp):
         resp.headers["X-Content-Type-Options"] = "nosniff"
         resp.headers["X-Frame-Options"] = "DENY"  # login-page clickjacking
-        resp.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+        # setdefault: routes that serve user content (uploads) set a stricter policy of their own.
+        resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
         # Keeps reset tokens in URLs out of Referer headers sent to other sites.
         resp.headers["Referrer-Policy"] = "no-referrer"
         if request.is_secure:

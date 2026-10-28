@@ -74,6 +74,7 @@ def create_app():
     from app.uploads import uploads_bp
     from app.reviews import reviews_bp
     from app.contact import contact_bp
+    from app.payments import payments_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(shop_bp)
@@ -82,6 +83,7 @@ def create_app():
     app.register_blueprint(uploads_bp)
     app.register_blueprint(reviews_bp)
     app.register_blueprint(contact_bp)
+    app.register_blueprint(payments_bp)
 
     @app.route("/disclaimer")
     def disclaimer():
@@ -165,7 +167,12 @@ def create_app():
 
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
-        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+        resp = send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+        if app.config["AUTH_SECURE"]:
+            # WSTG-BUSL-09: even if a hostile file got stored, the browser may not run or sniff it.
+            resp.headers["Content-Security-Policy"] = "default-src 'none'; sandbox"
+            resp.headers["X-Content-Type-Options"] = "nosniff"
+        return resp
 
     # Secure mode ships without this debug page: it is the WSTG-ATHN-09 reset-link leak.
     @app.route("/dev/last-reset", endpoint="dev_last_reset")

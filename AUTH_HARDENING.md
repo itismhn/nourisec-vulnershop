@@ -6,14 +6,14 @@ The lab ships two authentication implementations selected by one switch, so you 
 | Mode | How | What it is |
 |------|-----|-----------|
 | `vulnerable` (default) | nothing to set | The original intentionally broken auth used by the course labs |
-| `secure` | `VULNERSHOP_AUTH_MODE=secure` | Hardened auth, access control and input handling, covered by `tests/test_auth_wstg.py`, `tests/test_authz_wstg.py` and `tests/test_inpv_wstg.py` |
+| `secure` | `VULNERSHOP_AUTH_MODE=secure` | Hardened auth, access control and input handling, covered by `tests/test_auth_wstg.py`, `tests/test_authz_wstg.py`, `tests/test_inpv_wstg.py` and `tests/test_busl_wstg.py` |
 
 ```bash
 VULNERSHOP_AUTH_MODE=secure python scripts/reset_db.py   # reseed: secure mode prints random credentials
 VULNERSHOP_AUTH_MODE=secure python run.py
 # Docker: VULNERSHOP_AUTH_MODE=secure docker compose up --build
 #         docker compose exec vulnershop python scripts/reset_db.py
-.venv/bin/python -m unittest discover -s tests -v          # 108 checks, one class per WSTG test
+.venv/bin/python -m unittest discover -s tests -v          # one class per WSTG test
 ```
 
 Seeded secure-mode accounts get random passwords (printed once; override with
@@ -45,6 +45,24 @@ and change notifications is the server log (`vulnershop.mail`); audit events go 
 | ATHZ-02 Bypassing the authorization schema | any logged-in customer can use every `/admin/*` route and verb | admin routes need `role == admin` (403, audited as `authz_denied`) for GET/HEAD/POST alike; anonymous users are redirected to login; path tricks (`//`, `;`, `%00`, case) and override headers (`X-HTTP-Method-Override`, `X-Original-URL`, `X-Forwarded-For`) do not help; demoting or deleting an account takes effect on the very next request |
 | ATHZ-03 Privilege escalation | role is copied into the signed cookie (secret is public, so it can be forged) | role/user id are re-read from the server-side session record on every request, so a forged cookie cannot change them; `role`/`user_id`/`username` form fields are ignored by register, e-mail, password and avatar handlers |
 | ATHZ-04 IDOR | `/profile/<id>` and `/orders/<id>` return anyone's data | only the owner or an admin; everyone else gets the same 404 as for a non-existent id (no ID enumeration), and the denial is audited |
+
+## Business-logic coverage (WSTG v4.2 §4.10)
+
+Rules live in [`app/commerce.py`](app/commerce.py), [`app/shop.py`](app/shop.py), [`app/payments.py`](app/payments.py),
+[`app/reviews.py`](app/reviews.py), [`app/contact.py`](app/contact.py) and [`app/uploads.py`](app/uploads.py).
+`tests/test_busl_wstg.py` runs each attack against the vulnerable build (must succeed) and the secure build (must fail).
+
+| WSTG | Vulnerable build | Secure mode |
+|------|------------------|-------------|
+| BUSL-01 Data validation | any integer quantity (negative → negative order total), any review rating, any admin price (`-100`, `nan`), unbounded contact fields | quantity 1–10 and ≤ 20 cart lines; rating 1–5; review ≤ 2000 chars; price finite, > 0 and ≤ 1e9; contact fields validated and capped |
+| BUSL-02 Forge requests | `/payment/callback?order_id=N&status=success` is unauthenticated and unsigned | route does not exist (404); the server marks the order paid itself, only from `pending_payment`; pay/cancel/refund are owner-only (404 otherwise) |
+| BUSL-03 Integrity | checkout trusts a hidden `total` field | prices, discount and total always recomputed from the database; the cart is re-validated at checkout, so a forged cookie cart is rejected |
+| BUSL-04 Process timing | stock check and decrement are separate steps (oversell under parallel checkouts); unpaid orders live forever; coupon not re-checked | guarded `UPDATE … WHERE stock >= qty` under SQLite's write lock; unpaid orders expire after 15 min and restock; coupon and purchase limit re-validated at the moment of checkout |
+| BUSL-05 Function limits | coupons stack and never run out; "limit 2" and "7-day refund" are text; repeat refunds/cancels pay or restock again; unlimited reviews | one code per cart, single-use per customer (`UNIQUE(code, user_id)`); per-customer purchase limit counting earlier orders; refund once within 7 days; cancel once; one review per product |
+| BUSL-06 Work flows | pay anything, refund unpaid or ancient orders, pay cancelled orders, review without buying | explicit state machine (`pending_payment → paid → refunded`, `pending_payment → cancelled`); reviews need a paid order; card must pass Luhn |
+| BUSL-07 Misuse defenses | no throttle, no logging on coupon guessing, card testing, review or contact floods | 5 bad coupons / 15 min, 5 declines / hour, 3 reviews / hour, 5 contact posts / hour, 5 uploads / hour → `429`; one generic message for unknown/expired/used codes; `coupon_rejected`, `card_declined`, `*_throttled` audit events |
+| BUSL-08 Unexpected file types | extension-only allow-list (incl. `svg`), client `Content-Type` ignored but content never read | jpg/png/gif only; magic bytes must match the extension; 1 MB cap; server-chosen file name; previous avatar deleted |
+| BUSL-09 Malicious files | SVG with `<script>`, EICAR, script-bearing polyglots stored and served | no SVG; rejects `<script`, `<?php`, `<html`, `<svg`, `javascript:`, `onerror=` and the EICAR string anywhere in the file; uploads served with `Content-Security-Policy: sandbox` and `nosniff` |
 
 CSRF tokens (`csrf_input()` in every POST form) are enforced globally in secure mode, which also
 neutralises `app/static/csrf_poc_change_email.html`.
@@ -97,5 +115,7 @@ Phase 5 lab.
 - Registration still says "username already taken" (usernames are public in a shop). Logout is a GET link.
 - No password aging (NIST 800-63B advises against forced rotation); no e-mail verification on signup.
 - Lockout state is in SQLite; use Redis/WAF rate limiting for multi-instance deployments.
-- SVG-upload script execution and the CSRF PoC are covered by the Phase 5 lab. XSS, SQLi, command injection and SSRF are fixed in secure mode as described in the input validation table above.
+- The CSRF PoC is neutralised by the secure-mode token; SVG-upload script execution is closed by the BUSL-08/09 upload controls above. XSS, SQLi, command injection and SSRF are fixed in secure mode as described in the input validation table above.
+- The payment gateway is simulated (Luhn check + one declined test card); real gateways need signed webhooks and idempotency keys, which is the production form of BUSL-02/05.
+- Stock reservation and throttling rely on SQLite's single writer; use row locks / Redis for multi-instance deployments. No CAPTCHA, no real antivirus (the content scan is a teaching stand-in).
 - Authorization is a per-handler check (`_admin_required`, `_require_owner_or_admin`); there is no central policy layer or per-object ACL, and the admin role is all-or-nothing.

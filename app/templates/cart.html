@@ -29,14 +29,28 @@
     <div class="card-block">
         <div style="font-size:15px; font-weight:700; margin:0 0 16px; padding-bottom:14px; border-bottom:1px solid var(--line);">{{ t('cart.order_summary') }}</div>
         <div style="display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;">
-            <span>{{ t('cart.items_total') }}</span><b style="color:var(--ink);">{{ total|toman }} {{ t('currency.toman') }}</b>
+            <span>{{ t('cart.items_total') }}</span><b style="color:var(--ink);">{{ subtotal|toman }} {{ t('currency.toman') }}</b>
         </div>
+        {% if codes %}
+        <div style="display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;">
+            <span>{{ t('cart.discount_label') }} ({{ codes|join(', ') }})</span><b style="color:var(--wine);">-{{ discount|toman }} {{ t('currency.toman') }}</b>
+        </div>
+        {% endif %}
         <div style="display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;">
             <span>{{ t('cart.shipping_label') }}</span><b style="color:var(--ink);">{{ t('cart.free') }}</b>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:baseline; padding-top:14px; margin-top:6px; border-top:1px solid var(--line); font-size:15px; font-weight:700;">
             <span>{{ t('cart.total_payable') }}</span><span style="font-size:20px; font-weight:800;">{{ total|toman }} {{ t('currency.toman') }}</span>
         </div>
+        <form method="post" action="{{ url_for('shop.cart_coupon') }}" style="margin-top:18px;">
+{{ csrf_input() }}
+            <label style="font-size:12.5px; color:var(--ink-soft);">{{ t('cart.coupon_label') }}</label>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+                <input type="text" name="code" placeholder="{{ t('cart.coupon_placeholder') }}" maxlength="32" style="flex:1;" dir="ltr">
+                <button class="btn btn-outline">{{ t('cart.coupon_apply') }}</button>
+            </div>
+        </form>
+        <!-- TODO(marketing): NOWRUZ25 campaign ended, remove the code from the coupons table -->
         <a href="{{ url_for('shop.checkout') }}" class="btn btn-primary btn-block" style="margin-top:18px;">{{ t('cart.checkout_btn') }}</a>
     </div>
 

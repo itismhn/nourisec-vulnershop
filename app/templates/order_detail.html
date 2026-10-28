@@ -17,4 +17,23 @@
         </tbody>
     </table>
 </div>
+
+{% if order['subtotal'] is not none %}
+<p style="color:var(--ink-soft); margin-top:14px;">
+    {{ t('cart.items_total') }}: {{ order['subtotal']|toman }} {{ t('currency.toman') }}
+    {% if order['discount'] %} · {{ t('cart.discount_label') }}{% if order['coupon_code'] %} ({{ order['coupon_code'] }}){% endif %}: -{{ order['discount']|toman }} {{ t('currency.toman') }}{% endif %}
+    {% if order['refunded'] %} · {{ t('order_detail.refunded') }}: {{ order['refunded']|toman }} {{ t('currency.toman') }}{% endif %}
+</p>
+{% endif %}
+
+{% if session.get('user_id') == order['user_id'] %}
+<div style="display:flex; gap:10px; margin-top:16px;">
+    {% if order['status'] == 'pending_payment' %}
+    <a class="btn btn-primary" href="{{ url_for('payments.pay', order_id=order['id']) }}">{{ t('order_detail.pay_btn') }}</a>
+    <form method="post" action="{{ url_for('payments.cancel', order_id=order['id']) }}">{{ csrf_input() }}<button class="btn btn-outline">{{ t('order_detail.cancel_btn') }}</button></form>
+    {% elif order['status'] in ('paid', 'completed') %}
+    <form method="post" action="{{ url_for('payments.refund', order_id=order['id']) }}">{{ csrf_input() }}<button class="btn btn-outline">{{ t('order_detail.refund_btn') }}</button></form>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}

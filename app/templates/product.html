@@ -49,7 +49,12 @@
 
         <table class="table-clean" style="margin-top:20px;">
             <tr><td style="width:140px; font-weight:600;">{{ t('product.category_label') }}</td><td>{{ category_label(product['category']) }}</td></tr>
-            <tr><td style="font-weight:600;">{{ t('product.status_label') }}</td><td>{{ t('product.in_stock') }}</td></tr>
+            <tr><td style="font-weight:600;">{{ t('product.status_label') }}</td><td>
+                {% if product['stock'] <= 0 %}{{ t('product.out_of_stock') }}
+                {% elif product['stock'] <= 5 %}{{ t('product.only_left', count=product['stock']|fanum) }}
+                {% else %}{{ t('product.in_stock') }}{% endif %}
+                {% if product['purchase_limit'] %}<br><small>{{ t('product.purchase_limit', limit=product['purchase_limit']|fanum) }}</small>{% endif %}
+            </td></tr>
             <tr><td style="font-weight:600;">{{ t('product.shipping_label') }}</td><td>{{ t('product.shipping_value') }}</td></tr>
         </table>
     </div>
@@ -71,7 +76,7 @@
 {{ csrf_input() }}
             <div class="field">
                 <label>{{ t('product.quantity_label') }}</label>
-                <input type="number" name="qty" value="1" min="1" style="max-width:120px;">
+                <input type="number" name="qty" value="1" min="1"{% if product['purchase_limit'] %} max="{{ product['purchase_limit'] }}"{% endif %} style="max-width:120px;">
             </div>
             <button type="submit" class="btn btn-primary btn-block">
                 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.4l1.9 11.2a2 2 0 0 0 2 1.7h8.6a2 2 0 0 0 2-1.6l1.4-7.3H6"/></svg>

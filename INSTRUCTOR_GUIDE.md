@@ -279,6 +279,38 @@ URLs at all — have the client upload the image directly.
 
 ---
 
+## 12. Business Logic Flaws — Medium — WSTG-BUSL-01..07 — OWASP A04:2021
+
+**Where:** [`app/shop.py`](app/shop.py) (`cart_add`, `cart_coupon`, `checkout`), [`app/payments.py`](app/payments.py)
+(`pay`, `callback`, `cancel`, `refund`), [`app/reviews.py`](app/reviews.py), [`app/contact.py`](app/contact.py),
+[`app/commerce.py`](app/commerce.py). Seed data: coupons `WELCOME10` (valid) and `NOWRUZ25` (expired 2024), saffron
+`purchase_limit=2`, smartwatch `stock=3`. Marked in source with `VULN: … (WSTG-BUSL-xx)`.
+
+| WSTG | Root cause | Exploit | Fix |
+|------|-----------|---------|-----|
+| BUSL-01 | `int(qty)` and `int(rating)` unbounded | `qty=-5` → order total −1,425,000 (saffron); `rating=9999` skews the average; admin price `-100` | Whitelist ranges server-side (1–10, 1–5), reject non-numbers, bound lengths |
+| BUSL-02 | gateway result is a browser redirect to an unsigned, unauthenticated `GET /payment/callback` | `GET /payment/callback?order_id=5&status=success` marks any order paid | Server-to-server webhook with HMAC signature + amount check, or mark paid inside the payment handler (what secure mode does) |
+| BUSL-03 | checkout reads `total` from a hidden field | change it to `1`; or forge the cart in the session cookie (key `supersecret123`) | Never accept prices/totals from the client; recompute from the database |
+| BUSL-04 | `SELECT stock` … sleep … `UPDATE stock = stock - n` (TOCTOU); no expiry on unpaid orders; coupon only checked at apply time | two parallel checkouts of 2 watches → stock −1; pay a 30-day-old pending order | Atomic `UPDATE … WHERE stock >= n` in one transaction; expiry + restock; re-validate at the final step |
+| BUSL-05 | coupon codes appended to a list, no redemption record; refund adds `total` each call; cancel restocks each call; no purchase-limit or one-review rule | `WELCOME10` ×11 (or ×10 + `NOWRUZ25`) → total ≤ 0; refund ×3 → 3× paid out | `UNIQUE(code, user_id)` redemption table, state-guarded `UPDATE … WHERE status = …` as the lock, per-customer limits that count earlier orders |
+| BUSL-06 | handlers never check the order's current state or the 7-day window | refund an unpaid order; pay a cancelled/refunded one; review a product never bought; skip payment via the callback | Explicit state machine; every transition is `UPDATE … WHERE status IN (allowed)` and checks `rowcount` |
+| BUSL-07 | nothing counts or logs failures | 30 coupon guesses, 15 declined cards (card testing), 20 contact messages all succeed | Per-subject throttling (`429`), uniform error text, audit events, alerting; CAPTCHA/WAF in production |
+
+Teaching order: BUSL-01/03 (client trust) → 06/02 (workflow) → 05/07 (limits, abuse) → 04 (race; needs Burp
+"send in parallel" or two terminals). Note that order *actions* (pay/cancel/refund) are owner-only even in the
+vulnerable build, so students do not confuse these findings with the IDOR in #4.
+
+## 13. File Upload — unexpected and malicious files — WSTG-BUSL-08/09
+
+Extends #8. **BUSL-08:** the extension allow-list is the only gate, so `shell.php.png` (HTML/PHP body), a PDF
+renamed `.png`, a 3 MB `.gif` of junk are all accepted. **BUSL-09:** SVG with `<script>`, a `GIF89a…<script>`
+polyglot and the EICAR string are stored and served back (`image/svg+xml` for SVG). **Fix (secure mode):** raster
+types only, magic bytes must match the extension, content scan for script/PHP/HTML markers and EICAR, 1 MB cap,
+server-generated file name, old avatar deleted, and responses with `Content-Security-Policy: sandbox` plus
+`nosniff`. In production add real image re-encoding (Pillow) and a separate, cookieless uploads origin.
+
+---
+
 ## Chained finding worth calling out to students
 
 `/backup/app_backup.sql` (misconfig, #6) leaks `svc_backup`'s MD5 hash (weak crypto, #9), which

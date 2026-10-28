@@ -1,5 +1,6 @@
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
+from app import commerce
 from app import security as sec
 from app import validation
 from app.db import get_db
@@ -15,7 +16,12 @@ def contact():
         email = request.form.get("email", "")
         message = request.form.get("message", "")
         if current_app.config["AUTH_SECURE"]:
-            # WSTG-INPV-10: no CR/LF in single-line fields (header/mail/log injection), valid
+            # WSTG-BUSL-07: a public form needs a per-client rate limit (and a log line when it
+            # trips), or it becomes a free spam relay and a way to fill the database.
+            if sec.throttle_remaining("contact", sec.ip_subject(), commerce.CONTACT_MAX_PER_HOUR, 3600):
+                sec.audit("contact_throttled")
+                abort(429)
+            # WSTG-INPV-10 / BUSL-01: no CR/LF in single-line fields (header/mail/log injection), valid
             # address, bounded lengths. Stored verbatim and encoded on output.
             name, email, message = name.strip(), email.strip(), message.strip()
             if (
@@ -30,6 +36,8 @@ def contact():
             ):
                 flash(t("input.flash_invalid"), "danger")
                 return render_template("contact.html"), 400
+            sec.record_attempt("contact", sec.ip_subject())  # only stored messages count
+        # VULN (WSTG-BUSL-01/07): any size, any "email", any number of submissions.
         db = get_db()
         db.execute(
             "INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)",
