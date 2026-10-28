@@ -51,6 +51,10 @@ and the OWASP Top 10.
 Every one of these is confirmed working end-to-end, with a staged path from "find it"
 to "exploit it" to "here's the fix" — see [Docs](#docs) below.
 
+> **Authentication hardening mode:** set `VULNERSHOP_AUTH_MODE=secure` to run the same app with a
+> WSTG-4.4-aligned authentication system (lockout, safe reset flow, server-side sessions, password
+> policy, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
+
 ## Run it
 
 **Docker (recommended):**
@@ -134,6 +138,28 @@ python scripts/reset_db.py
 ```
 
 or click **Reset Database** in the admin panel (`/admin`) while logged in.
+
+## Phase 2: Authentication tips
+
+Phase 2 of the course is the OWASP WSTG v4.2 authentication chapter (§4.4). Run each test
+against `vulnerable` first (it should break), then against `secure` (it should hold). Switch
+modes with `VULNERSHOP_AUTH_MODE=secure|vulnerable` and re-run `python scripts/reset_db.py` —
+secure mode prints random passwords instead of the table above. Full control list and demo
+script: [`AUTH_HARDENING.md`](AUTH_HARDENING.md).
+
+| WSTG | Tip | How to achieve | Secure mode result |
+|------|-----|----------------|--------------------|
+| ATHN-02 | Vendor-style default logins | Try `admin/admin123`, `alice/Password1`, `svc_backup/password123` | 401 — random passwords, `svc_backup` removed |
+| ATHN-03 | Nothing stops repeat guesses | Send 6+ wrong passwords for one user (Burp Intruder or a curl loop) | 429 after 5; same for unknown usernames |
+| ATHN-04 | The login query trusts your input | `' OR '1'='1' --` as username; also open `/admin/users` as a customer | Generic 401; admin pages return 403 |
+| ATHN-04 | A logout that only clears the browser | Copy your session cookie, log out, replay the cookie | Rejected (server-side sessions) |
+| ATHN-06 | Pages linger after logout | Log out, press Back | `Cache-Control: no-store`, nothing shown |
+| ATHN-07 | No password rules | Register with `a`, `password123`, or your own username | Rejected (length, common list, username) |
+| ATHN-09 | The reset flow leaks | Request a reset for `alice`, open `/dev/last-reset`; or open `/reset-password/<md5("reset-alice")>` | 404; random, hashed, 15-minute, single-use tokens |
+| ATHN-09 | Changing a password needs no proof | POST `/account/change-password` without the current password, or via `app/static/csrf_poc_change_email.html` | Needs current password + CSRF token; other sessions are logged out |
+
+Secure mode logs reset links and change notices to the server console (`[SIMULATED EMAIL]`)
+and audit events as `vulnershop.auth`. Automated checks: `python -m unittest discover -s tests`.
 
 ## Docs
 
