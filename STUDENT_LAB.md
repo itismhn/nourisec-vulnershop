@@ -64,10 +64,22 @@ list of controls is in [`AUTH_HARDENING.md`](AUTH_HARDENING.md) — read it **af
 
 ## Phase 3 — Authorization / Access Control (WSTG-ATHZ)
 
+Authentication asked "who are you?"; this phase asks "what are you allowed to do?". Use at least
+two accounts (e.g. `alice` and `bob`, plus an anonymous browser) so you can compare what each
+one can reach. Not every test finds a bug — a test that *fails to break in* is still a result,
+so log it too.
+
 | # | WSTG ID | Task | Hint |
 |---|---------|------|------|
-| 1 | WSTG-ATHZ-01 | Horizontal privilege escalation | Log in as a normal customer. Find a URL with a numeric ID in it (profile, order). What happens if you change the number? |
-| 2 | WSTG-ATHZ-04 | Vertical privilege escalation | You found an admin-shaped URL in Phase 1. Try reaching it while logged in as a plain customer — no admin account needed. |
+| 1 | WSTG-ATHZ-04 | Insecure direct object references (horizontal escalation) | Log in as a normal customer. Find a URL with a numeric ID in it (profile, order). What happens if you change the number? Does a made-up number behave differently from someone else's? |
+| 2 | WSTG-ATHZ-02 | Bypass the authorization schema (vertical escalation) | You found an admin-shaped URL in Phase 1. Try reaching it while logged in as a plain customer — no admin account needed. Then try the admin *actions* (POST forms), not just the pages, and other HTTP methods. |
+| 3 | WSTG-ATHZ-03 | Privilege escalation | Can you become an admin without knowing the admin password? Look at what you send when you register or edit your profile, and at what the session cookie contains and how it is protected. |
+| 4 | WSTG-ATHZ-01 | Directory traversal / file include | Some paths hand back files by name (`/backup/…`, `/uploads/…`) and the avatar upload takes a filename from you. Can you get out of the intended folder with `../` (plain, URL-encoded, double-encoded)? If not, what can you still reach *by name* that you shouldn't? |
+
+**Retest in secure mode.** Once you have logged your findings, restart with
+`VULNERSHOP_AUTH_MODE=secure` (see [`AUTH_HARDENING.md`](AUTH_HARDENING.md)), reseed, and repeat
+all four tests. Each should now be refused; compare the status codes with what you saw before and
+note them in your report as the "after" evidence.
 
 ---
 

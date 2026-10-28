@@ -32,7 +32,7 @@ def _admin_required():
             sec.audit("authz_denied", user=session.get("username"), path=request.path)
             abort(403)
         return True
-    # VULN: Broken Access Control (WSTG-ATHZ-01 / OWASP A01:2021) - this only checks
+    # VULN: Broken Access Control (WSTG-ATHZ-02 / OWASP A01:2021) - this only checks
     # that *someone* is logged in. It never checks session["role"] == "admin", so any
     # registered customer can reach every /admin/* route just by knowing/guessing the
     # URL - there is no link to it anywhere in the customer-facing UI.

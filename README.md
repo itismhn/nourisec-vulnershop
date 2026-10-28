@@ -39,7 +39,7 @@ and the OWASP Top 10.
 | 1 | SQL Injection — login & search | Input Validation | WSTG-INPV-05 |
 | 2 | Reflected XSS — search results | Input Validation | WSTG-INPV-01 |
 | 3 | Stored XSS — product reviews | Input Validation | WSTG-INPV-02 |
-| 4 | Broken Access Control — IDOR (`/profile/<id>`, `/orders/<id>`) | Authorization | WSTG-ATHZ-01/04 |
+| 4 | Broken Access Control — IDOR (`/profile/<id>`, `/orders/<id>`) | Authorization | WSTG-ATHZ-02/04 |
 | 5 | Broken Authentication — no lockout, weak password policy, leaky reset flow | Authentication | WSTG-ATHN-02/03/04/07 |
 | 6 | Security Misconfiguration — exposed `.git`, backups, directory listing, debug pages | Config | WSTG-CONF-01/02/03/06 |
 | 7 | CSRF — account settings forms | Session Mgmt | WSTG-SESS-05 |
@@ -160,6 +160,22 @@ script: [`AUTH_HARDENING.md`](AUTH_HARDENING.md).
 
 Secure mode logs reset links and change notices to the server console (`[SIMULATED EMAIL]`)
 and audit events as `vulnershop.auth`. Automated checks: `python -m unittest discover -s tests`.
+
+## Phase 3: Authorization tips
+
+Phase 3 is the OWASP WSTG v4.2 authorization chapter (§4.5). Same drill as Phase 2: run each test
+against `vulnerable` first (it should break), then against `secure` (it should hold). You need two
+customer accounts plus an anonymous session. Controls and rationale: [`AUTH_HARDENING.md`](AUTH_HARDENING.md#authorization-coverage-wstg-v42-45).
+
+| WSTG | Tip | How to achieve | Secure mode result |
+|------|-----|----------------|--------------------|
+| ATHZ-04 | Numbers in URLs are keys to other people's data | Log in as `bob`, open `/orders/1` and `/profile/1`; then walk the IDs upward | 404 for anything not yours, identical to a missing ID; admins may view all |
+| ATHZ-02 | The admin panel only checks "logged in" | As a customer, open `/admin/users`, then POST `/admin/products` or `/admin/reset` | 403 on every admin route and verb; anonymous users go to login |
+| ATHZ-03 | Roles should never come from the client | Add `role=admin` to `/register` and `/account/change-email`; edit the `role` inside your session cookie | Fields ignored; role and user id are re-read from the server-side session on every request |
+| ATHZ-01 | `../` is blocked, but the leftovers are not | Try `/backup/../app/config.py` and encoded variants (blocked); then fetch `/backup/app_backup.sql`, browse `/backup/`, `/.git/`, `/uploads/` | Those paths return 404; avatar filenames are sanitised and extension-checked |
+
+Denied attempts are logged as `authz_denied` on the `vulnershop.auth` logger. Automated checks:
+`python -m unittest discover -s tests` (`tests/test_authz_wstg.py`).
 
 ## Docs
 

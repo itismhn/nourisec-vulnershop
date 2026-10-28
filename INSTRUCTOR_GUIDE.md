@@ -75,7 +75,7 @@ with an allow-list library (e.g. `bleach.clean(body, tags=[...])`) before storin
 
 ---
 
-## 4. Broken Access Control / IDOR — Medium — WSTG-ATHZ-01/04 — OWASP A01:2021
+## 4. Broken Access Control / IDOR — Medium — WSTG-ATHZ-02/04 — OWASP A01:2021
 
 **Location:**
 - [`app/account.py`](app/account.py) `profile(user_id)` and `order_detail(order_id)` — fetch by

@@ -26,7 +26,7 @@ directly in the URL as `?q=`) and see if it runs instead of just appearing as te
 `<script>alert(document.cookie)</script>`. Reload the product page (or have someone
 else view it) and watch it fire.
 
-### 4. Broken Access Control / IDOR — Medium — WSTG-ATHZ-01/04
+### 4. Broken Access Control / IDOR — Medium — WSTG-ATHZ-02/04
 **Tip:** Several URLs have a plain number in them (`/profile/2`, `/orders/1`) and an
 admin panel that's never linked from the site's navigation.
 **How to achieve:** Log in as one customer, then just change the number in

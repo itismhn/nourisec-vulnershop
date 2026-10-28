@@ -58,7 +58,7 @@ def profile(user_id):
     if not _require_login():
         return redirect(url_for("auth.login"))
 
-    # VULN: Broken Access Control / IDOR (WSTG-ATHZ-01) - fetches by ID with no
+    # VULN: Broken Access Control / IDOR (WSTG-ATHZ-04) - fetches by ID with no
     # check that user_id == session["user_id"]. Any logged-in user can view any
     # other user's profile by changing the number in the URL.
     if current_app.config["AUTH_SECURE"]:
@@ -85,7 +85,7 @@ def order_detail(order_id):
     if not _require_login():
         return redirect(url_for("auth.login"))
 
-    # VULN: Broken Access Control / IDOR (WSTG-ATHZ-01) - no ownership check against
+    # VULN: Broken Access Control / IDOR (WSTG-ATHZ-04) - no ownership check against
     # session["user_id"]. Incrementing the ID in the URL reveals other customers' orders.
     order = get_order(order_id)
     if current_app.config["AUTH_SECURE"]:
