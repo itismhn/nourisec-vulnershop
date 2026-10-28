@@ -134,7 +134,7 @@ class TestATHZ02BypassSchema(AuthzBase):
         for path in ADMIN_GETS:
             self.assertEqual(c.get(path).status_code, 200, path)
         before = self.count("products")
-        self.post("/admin/products", {"name": "ok", "price": "5", "description": "", "category": ""}, c, "/admin/products")
+        self.post("/admin/products", {"name": "ok", "price": "5", "description": "", "category": "خواربار ایرانی"}, c, "/admin/products")
         self.assertEqual(self.count("products"), before + 1)
 
     def test_revoked_admin_loses_access_on_next_request(self):

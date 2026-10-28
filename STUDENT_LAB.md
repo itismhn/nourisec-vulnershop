@@ -131,12 +131,87 @@ note them in your report as the "after" evidence.
 
 ## Phase 4 — Input Validation (WSTG-INPV)
 
+Authorization asked "what are you allowed to do?"; this phase asks "what happens when the input
+is not what the developer expected?". It covers every test in OWASP WSTG v4.2 §4.7 (INPV-01 to
+INPV-19). Work it on the default build, then repeat on the hardened build (see "Retest" below).
+
+Not every test has a bug behind it, and that is the point. A real engagement tests the whole list
+and reports *"attempted X, got Y"* for the ones that hold. Rows marked **probe** have no vulnerable
+code behind them in this app: send the payloads, prove the output is inert, and write that down as
+evidence rather than skipping the row.
+
+### Help: how to work this phase
+
+**1. Build your target list first.** From Phase 1 you have every page, form, query parameter,
+cookie and header. List each *input* once (search `q`, login `username`/`password`, review `body` /
+`rating`, contact `name`/`email`/`message`, cart `qty`, admin `host` and `url`, the `Host` header,
+URL path segments, the `lang` cookie, uploaded file names) and tick it off against every test below.
+
+**2. Use the probe → observe → escalate loop.** For each input:
+
+1. Send a harmless **marker** (`zq7x1`) and find everywhere it comes back: same page, another page,
+   an error, a header, the page `<title>`, a JS string, an attribute.
+2. Note the **context** it lands in (HTML body, attribute, script, SQL, shell, URL). The context
+   decides which characters matter.
+3. Send the characters that matter for that context (`' " < > ; | $ { } % \r\n`) one at a time and
+   compare response status, size, timing and content with the marker response.
+4. Only when something changes, build a payload that *proves* impact (JS execution, extra rows,
+   a command's output) — and stop there. Proof, not damage.
+
+**3. Per-test nudges** (where to point your tools, no spoilers):
+
+- **INPV-01/02** — check *every* place text is echoed, including the page title and error text,
+  not just the obvious one. For stored input ask "who else will see this, and when?".
+- **INPV-04** — send the same parameter twice (`?q=a&q=b`, or a form field repeated in the proxy)
+  and note which value the server uses. A bug needs the *check* and the *use* to disagree, so also
+  look at what the cart does with quantities at all.
+- **INPV-05** — a single quote tells you whether the input reaches a query. Count columns before
+  you try to pull rows from another table.
+- **INPV-10/15** — carriage-return/line-feed (`%0d%0a`) is the character that matters. Where does
+  your input end up in a mail header, a response header or a log line?
+- **INPV-12/19** — these tools are admin-only, but remember Phase 3: do you need to be an admin?
+  Docker sandbox only (see README).
+
+**4. Record per test**: input, endpoint/method, the payload you sent, the response that proves the
+result, and the context. Rows you could not break still get an entry ("attempted `{{7*7}}` in 6
+inputs, rendered literally"). This feeds `REPORT_TEMPLATE.md`.
+
+**5. Stuck?** [`VULN_TIPS.md`](VULN_TIPS.md) has tips for SQLi (#1), XSS (#2, #3), command
+injection (#10), SSRF (#11) and the probes. `INSTRUCTOR_GUIDE.md` is the answer key — don't open it yet.
+
 | # | WSTG ID | Task | Hint |
 |---|---------|------|------|
-| 1 | WSTG-INPV-05 | SQL Injection — login | Classic single-quote-breakout payloads on the login form. What happens to the query when your input contains a `'`? |
-| 2 | WSTG-INPV-05 | SQL Injection — search | The search box hits the database too. If you can control what comes back, can you make it return rows from a *different* table? (Hint: column count matters for that technique.) |
-| 3 | WSTG-INPV-01 | Reflected XSS | The search page echoes your query back onto the page. Try a payload that would prove JS execution, not just presence of text. |
-| 4 | WSTG-INPV-02 | Stored XSS | Product reviews are stored and shown to every future visitor. What happens if a review contains a script tag? |
+| 1 | WSTG-INPV-01 | Reflected XSS | The search page echoes your query back. Try a payload that proves JS execution, not just presence of text. Then check the other places the same text is reflected (title, error box). |
+| 2 | WSTG-INPV-02 | Stored XSS | Product reviews are stored and shown to every future visitor. What happens if a review contains a script tag? Which other inputs are stored — and which are ever displayed back? |
+| 3 | WSTG-INPV-03 | HTTP verb tampering | For every admin and state-changing URL, try `HEAD`, `OPTIONS`, `PUT`, `DELETE`, `PATCH` and a made-up verb. Read the `Allow` header. Does any verb skip a check the normal one enforces? (Phase 1 task 10 found the verbs; here you test the *access control* on them.) |
+| 4 | WSTG-INPV-04 | HTTP parameter pollution | Send a parameter twice, in the query string and in a POST body (`qty`, `q`, `category`). Which value wins? Then ask what the server checks about a quantity before it goes in the cart — try a negative one and look at the cart total. |
+| 5 | WSTG-INPV-05 | SQL Injection — login | Classic single-quote-breakout payloads on the login form. What happens to the query when your input contains a `'`? Try the password field too, and compare the error vs. a plain wrong password. |
+| 6 | WSTG-INPV-05 | SQL Injection — search | The search box hits the database too. If you can control what comes back, can you make it return rows from a *different* table? (Hint: column count matters for that technique.) Also: what does the page tell you when the query breaks? |
+| 7 | WSTG-INPV-06 | LDAP injection — **probe** | There is no directory service. Send LDAP filter metacharacters (`*`, `(`, `)`, `&`, `|`) into the login and search fields and confirm they only ever behave as ordinary text. |
+| 8 | WSTG-INPV-07 | XML injection / XXE — **probe** | Nothing parses XML. Submit a small XML document with an entity declaration in a text field, then re-send a form with `Content-Type: application/xml`. Is it parsed, stored, or refused? |
+| 9 | WSTG-INPV-08 | SSI injection — **probe** | Put a server-side-include directive in a review and a search term. Does any page execute it or just show it? What does that tell you about the stack? |
+| 10 | WSTG-INPV-09 | XPath injection — **probe** | There is no XML data store. Send quote and boolean XPath fragments to the login and search inputs and confirm they match the SQL behaviour (or nothing) rather than a different query language. |
+| 11 | WSTG-INPV-10 | IMAP/SMTP injection | The contact form takes a name and an e-mail address. Put a line break in each. Does anything build a mail header from them? Check what the app stores and which responses/logs echo them. |
+| 12 | WSTG-INPV-11 | Code injection / local & remote file inclusion | Look for parameters that choose a file, template or page by name (`page=`, `file=`, `lang`, path segments) and for places where the server evaluates what you send. Combine with what you found in Phase 3 (ATHZ-01). A well-documented "no" is a valid result. |
+| 13 | WSTG-INPV-12 | Command injection | There's an admin "health check" tool that pings a host you supply. What happens if your input isn't just a hostname? *Only inside the provided Docker sandbox — see README.* (Also listed under Phase 5's advanced tasks; do it once and reuse the evidence.) |
+| 14 | WSTG-INPV-13 | Format string injection — **probe** | Send `%s%s%n`, `%x`, `{0}` and `{{}}` style strings to every text input. Look for crashes, odd output, or values from the server appearing. |
+| 15 | WSTG-INPV-14 | Incubated vulnerabilities | Plant a marker payload in every stored input (review, contact message, avatar file name/content, admin product fields). Then log in as *other* roles — customer, anonymous, admin — and look for where and when it fires. Who is the victim in each case? |
+| 16 | WSTG-INPV-15 | HTTP splitting / smuggling | Put `%0d%0a` in values that end up in response headers or redirects (`/set-language/<lang>`, search, product path) and look for injected headers or cookies. Smuggling needs a front-end proxy in front of the app; with only the dev server, document why it is not testable. |
+| 17 | WSTG-INPV-16 | Testing HTTP incoming requests | Proxy a full browsing session. List every request the page makes on its own (JS, images, fonts, background calls), including headers and cookies you did not set. Replay a few with modified headers (`Referer`, `X-Forwarded-For`, `User-Agent`). |
+| 18 | WSTG-INPV-17 | Host header injection | Request the forgot-password page with a different `Host` (and `X-Forwarded-Host`) header and trigger a reset for a user you control. Where is the reset link built from? Is there a leftover page that shows it? |
+| 19 | WSTG-INPV-18 | Server-side template injection — **probe** | Send template syntax (`{{7*7}}`, `${7*7}`, `<%= 7*7 %>`) to every input *and* into URL paths (including a made-up page that 404s). Does `49` ever appear instead of the characters you sent? |
+| 20 | WSTG-INPV-19 | Server-side request forgery | There's an admin "fetch image by URL" tool. Where else, besides a real image host, might the server be willing to fetch from — including addresses that only make sense from the server's own point of view? *Docker sandbox only.* (Also listed under Phase 5's advanced tasks.) |
+
+Also run **WSTG-ERRH-01** here: feed malformed values (`abc`, `-1`, a huge number, a unicode digit)
+to every numeric parameter (`/product/<id>`, `qty`, `rating`) and note which ones produce a stack
+trace and what it reveals.
+
+**Retest in secure mode.** Restart with `VULNERSHOP_AUTH_MODE=secure` (see
+[`AUTH_HARDENING.md`](AUTH_HARDENING.md#input-validation-coverage-wstg-v42-47)), reseed, and repeat
+all 20 rows plus the ERRH check. Record per row *vulnerable → hardened* with the status codes. For
+each control you cannot break, write one sentence on how you would verify it in a real engagement
+(e.g. "search term is HTML-encoded in the response; confirmed with `<script>` and an attribute
+breakout"). Read the controls list **after** your retest.
 
 ---
 

@@ -103,7 +103,7 @@
             <span style="font-size:12px; color:var(--ink-soft);">{{ review['created_at'] }}</span>
         </div>
         <!-- VULN: Stored XSS (WSTG-INPV-02) - review body rendered with |safe, no escaping -->
-        <p style="font-size:13.5px; color:#403A32; line-height:1.8;">{{ review['body']|safe }}</p>
+        <p style="font-size:13.5px; color:#403A32; line-height:1.8;">{% if AUTH_SECURE %}{{ review['body'] }}{% else %}{{ review['body']|safe }}{% endif %}</p>
     </div>
     {% else %}
     <p style="color:var(--ink-soft);">{{ t('product.no_reviews_be_first') }}</p>

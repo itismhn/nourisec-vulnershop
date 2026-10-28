@@ -222,7 +222,7 @@ any web-accessible path and off any host the app itself serves from.
 
 ---
 
-## 10. Command Injection — Hard (advanced) — admin "ping" tool — OWASP A03:2021
+## 10. Command Injection — Hard (advanced) — WSTG-INPV-12 — admin "ping" tool — OWASP A03:2021
 
 **Location:** [`app/admin.py`](app/admin.py) `ping()`.
 
@@ -249,7 +249,7 @@ subprocess.run(["ping", "-c", "1", host], capture_output=True, text=True, timeou
 
 ---
 
-## 11. SSRF — Hard (advanced) — admin "fetch product image by URL" — OWASP A10:2021
+## 11. SSRF — Hard (advanced) — WSTG-INPV-19 — admin "fetch product image by URL" — OWASP A10:2021
 
 **Location:** [`app/admin.py`](app/admin.py) `fetch_image()`.
 

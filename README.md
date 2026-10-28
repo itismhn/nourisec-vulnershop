@@ -45,15 +45,15 @@ and the OWASP Top 10.
 | 7 | CSRF — account settings forms | Session Mgmt | WSTG-SESS-05 |
 | 8 | Insecure File Upload — SVG with embedded script | Business Logic | WSTG-BUSL-09 |
 | 9 | Sensitive Data Exposure — unsalted hashes, hardcoded API key | Cryptography | WSTG-CRYP-04 |
-| 10 | Command Injection — admin "ping" tool | Advanced | — |
-| 11 | SSRF — admin "fetch image by URL" tool | Advanced | — |
+| 10 | Command Injection — admin "ping" tool | Input Validation | WSTG-INPV-12 |
+| 11 | SSRF — admin "fetch image by URL" tool | Input Validation | WSTG-INPV-19 |
 
 Every one of these is confirmed working end-to-end, with a staged path from "find it"
 to "exploit it" to "here's the fix" — see [Docs](#docs) below.
 
 > **Hardening mode:** set `VULNERSHOP_AUTH_MODE=secure` to run the same app with a
-> WSTG-4.4/4.5-aligned authentication and authorization layer (lockout, safe reset flow, server-side
-> sessions, password policy, admin role checks, IDOR ownership checks, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
+> WSTG-4.4/4.5/4.7-aligned authentication, authorization and input-validation layer (lockout, safe reset flow, server-side
+> sessions, password policy, admin role checks, IDOR ownership checks, output encoding, parameterised queries, SSRF allow-listing, ...). Default is `vulnerable`. See [AUTH_HARDENING.md](AUTH_HARDENING.md).
 
 ## Run it
 
@@ -176,6 +176,31 @@ customer accounts plus an anonymous session. Controls and rationale: [`AUTH_HARD
 
 Denied attempts are logged as `authz_denied` on the `vulnershop.auth` logger. Automated checks:
 `python -m unittest discover -s tests` (`tests/test_authz_wstg.py`).
+
+## Phase 4: Input validation tips
+
+Phase 4 is the OWASP WSTG v4.2 input validation chapter (§4.7, INPV-01 to INPV-19). Same drill:
+`vulnerable` first, then `secure`. Rows marked *probe* have no vulnerable code behind them, so the
+expected result in **both** modes is "payload comes back inert" and that result is your evidence.
+Controls and rationale: [`AUTH_HARDENING.md`](AUTH_HARDENING.md#input-validation-coverage-wstg-v42-47).
+
+| WSTG | Tip | How to achieve | Secure mode result |
+|------|-----|----------------|--------------------|
+| INPV-01 | Search echoes your input unescaped | Search `<script>alert(1)</script>`; also try breaking out of the page title and error box | Rendered as text (HTML-encoded) |
+| INPV-02 | Reviews are stored raw | Post a review with a script tag, then view it as another user | Encoded for every viewer; bad length/rating rejected |
+| INPV-03 | Verb handling | `curl -i -X OPTIONS/HEAD/PUT/DELETE` on `/admin/*` and `/cart/add/1` | Never 200 for a mutation; customers get 403 on HEAD |
+| INPV-04 | Duplicate parameters / unchecked `qty` | `qty=1&qty=-5`; `qty=-5`; `/search?q=a&q=b` | Duplicate or out-of-range `qty` rejected; cart unchanged |
+| INPV-05 | Concatenated SQL | `'` in login/search; `UNION SELECT` with 5 columns | Generic 401 / literal search, no error text |
+| INPV-06–09, 13, 18 | *probe* — no LDAP, XML, XPath, SSI, format or template sinks | `*)(uid=*`, XML with an entity, `<!--#exec cmd="id"-->`, `%s%n`, `{{7*7}}` in every input and in URL paths | Inert everywhere (that is the finding) |
+| INPV-10 | Contact form takes a name and e-mail | CR/LF (`%0d%0a`) in `name` and `email` | 400, nothing stored |
+| INPV-11 | Look for include-style parameters | `?page=`, `?file=`, `lang` cookie, traversal in path segments | Nothing read or evaluated |
+| INPV-12 | Ping builds a shell string | `127.0.0.1; id` in `/admin/ping` (**Docker only**) | 400; argv list, no shell |
+| INPV-14 | Plant now, fire later | Stored payload in review/contact, then view as admin and anonymous | Encoded for all viewers |
+| INPV-15 | CR/LF into headers | `%0d%0a` in `/set-language/<x>`, search, redirects | No injected header or cookie |
+| INPV-17 | Reset link uses the `Host` header | `curl -H "Host: evil.test" -d username=alice /forgot-password`, then open `/dev/last-reset` | 400 for unknown `Host`; `/dev/last-reset` gone |
+| INPV-19 | Fetch tool trusts any URL | `http://127.0.0.1:5000/...` in `/admin/fetch-image` (**Docker only**) | 400; only public http(s) images |
+
+Automated checks: `python -m unittest discover -s tests` (`tests/test_inpv_wstg.py`).
 
 ## Docs
 

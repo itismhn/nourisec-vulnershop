@@ -287,6 +287,9 @@ _TRANSLATIONS = {
         "reviews.flash_login_to_review": "Please log in to your account to write a review.",
         "reviews.flash_review_submitted": "Your review has been submitted successfully.",
 
+        "input.flash_invalid": "Some of the input was missing or not valid.",
+        "input.flash_fetch_failed": "That URL could not be fetched.",
+
         "contact.flash_message_sent": "Your message has been received - our (test) support team will reply soon.",
 
         "uploads.flash_no_file": "No file was selected.",
@@ -550,6 +553,9 @@ _TRANSLATIONS = {
 
         "reviews.flash_login_to_review": "برای ثبت نظر ابتدا وارد حساب کاربری خود شوید.",
         "reviews.flash_review_submitted": "نظر شما با موفقیت ثبت شد.",
+
+        "input.flash_invalid": "بخشی از ورودی خالی یا نامعتبر بود.",
+        "input.flash_fetch_failed": "دریافت این نشانی ممکن نبود.",
 
         "contact.flash_message_sent": "پیام شما ثبت شد - تیم پشتیبانی (آزمایشی) به‌زودی پاسخ می‌دهد.",
 

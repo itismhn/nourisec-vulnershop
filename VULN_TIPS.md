@@ -69,7 +69,7 @@ client-side code.
 tip #1, or `/backup/app_backup.sql`) and run it through a hash-cracking tool or an
 online hash lookup. Separately, view the page source of `static/js/main.js`.
 
-### 10. Command Injection — Hard (advanced) — admin "ping" tool
+### 10. Command Injection — Hard (advanced) — WSTG-INPV-12 — admin "ping" tool
 **Tip:** The admin health-check tool builds a shell command out of whatever host you
 give it.
 **How to achieve:** On `/admin/ping`, enter `127.0.0.1; whoami` (or `` `id` ``) instead
@@ -77,12 +77,26 @@ of a plain hostname and see what comes back beyond the ping output. Only try thi
 inside the provided Docker sandbox (see README) — outside Docker it runs on your real
 machine.
 
-### 11. SSRF — Hard (advanced) — admin "fetch image by URL"
+### 11. SSRF — Hard (advanced) — WSTG-INPV-19 — admin "fetch image by URL"
 **Tip:** The "fetch product image by URL" tool makes the *server* request whatever URL
 you give it, with no restriction on where that URL points.
 **How to achieve:** On `/admin/fetch-image`, enter an internal address instead of a
 real image URL — e.g. `http://127.0.0.1:5000/dev/last-reset` — and check the file it
 saves under `/uploads/`. Docker sandbox only, same reasoning as #10.
+
+### 12. Input-validation probes — WSTG-INPV-03/04/06–11/13–15/17/18
+**Tip:** Most of these tests have no bug behind them in this app; the job is to prove
+that, and to find the few that do.
+**How to achieve:**
+- *HPP / quantities (INPV-04):* add to the cart with `qty=-5`, then with `qty=1&qty=-5`, and
+  open `/cart` — the app does not validate quantities at all.
+- *Host header (INPV-17):* `curl -H "Host: evil.test" -d "username=alice" http://127.0.0.1:5000/forgot-password`,
+  then open `/dev/last-reset` and read the link's hostname.
+- *Verbs (INPV-03):* `curl -i -X OPTIONS` and `-X HEAD` against `/admin/users` as a customer; compare
+  with GET.
+- *Error handling (ERRH-01):* open `/product/abc` and read what the stack trace reveals.
+- *Inert probes (INPV-06–09, 13, 18):* put `{{7*7}}`, `%s%n`, `*)(uid=*` and an XML entity into every
+  input; if nothing is ever evaluated, record that as "attempted X, got Y".
 
 ---
 

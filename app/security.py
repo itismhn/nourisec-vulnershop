@@ -39,6 +39,14 @@ PASSWORD_MAX_LEN = 128          # bound the hashing work an attacker can force
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{3,32}$")
 EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]+\.[^@\s]+$")
 
+# WSTG-INPV-17: Host header allow-list. Reset links and redirects are built from the Host
+# header, so an attacker-chosen value would poison them. Add your real domain(s) when deploying.
+ALLOWED_HOSTS = {
+    h.strip().lower()
+    for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",")
+    if h.strip()
+}
+
 audit_log = logging.getLogger("vulnershop.auth")
 mail_log = logging.getLogger("vulnershop.mail")
 
@@ -353,6 +361,11 @@ def init_security(app):
     def _secure_before_request():
         if request.endpoint == "static":
             return
+        host = request.host.lower()
+        hostname = host.split("]")[0] + "]" if host.startswith("[") else host.split(":")[0]
+        if hostname not in ALLOWED_HOSTS:
+            audit("host_rejected", host=host)
+            abort(400, description="Unrecognised Host header.")
         # WSTG-ATHN-01: never serve credential forms over plain HTTP when HTTPS is enforced.
         if app.config["FORCE_HTTPS"] and not request.is_secure:
             return redirect(request.url.replace("http://", "https://", 1), code=301)

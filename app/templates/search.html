@@ -2,7 +2,7 @@
 {% block title %}{{ t('search.title', query=query) }} - {{ t('site.name') }}{% endblock %}
 {% block content %}
 <!-- VULN: Reflected XSS (WSTG-INPV-01) - the raw search term is rendered with |safe -->
-<h1 class="page-title">{{ t('search.title', query='')|safe }}{{ query|safe }}</h1>
+<h1 class="page-title">{{ t('search.title', query='')|safe }}{% if AUTH_SECURE %}{{ query }}{% else %}{{ query|safe }}{% endif %}</h1>
 
 {% if error %}
 <div class="alert alert-info" style="direction:ltr; text-align:left; font-family:monospace;">

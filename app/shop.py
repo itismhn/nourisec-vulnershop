@@ -1,5 +1,6 @@
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 
+from app import validation
 from app.db import get_db
 from app.i18n import t
 from app.models import (
@@ -35,6 +36,8 @@ def product_detail(product_id):
     # VULN: Security Misconfiguration - no input validation before int() conversion,
     # combined with DEBUG=True, surfaces a full Werkzeug stack trace for non-numeric
     # IDs (WSTG-ERRH-01). Try /product/abc.
+    if current_app.config["AUTH_SECURE"] and not (product_id.isascii() and product_id.isdigit() and len(product_id) < 10):
+        abort(404)  # secure mode: validate the id before using it, so no stack trace
     product = get_product(int(product_id))
     if not product:
         flash(t("shop.flash_product_not_found"), "warning")
@@ -51,6 +54,16 @@ def product_detail(product_id):
 def search():
     q = request.args.get("q", "")
     db = get_db()
+
+    if current_app.config["AUTH_SECURE"]:
+        # WSTG-INPV-05: parameterised query, LIKE wildcards escaped, no database error text shown.
+        like = validation.like_pattern(q[: validation.SEARCH_MAX_LEN])
+        results = db.execute(
+            "SELECT id, name, description, price, image FROM products "
+            "WHERE name LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\'",
+            (like, like),
+        ).fetchall()
+        return render_template("search.html", query=q, results=results, error=None)
 
     # VULN: SQL Injection (WSTG-INPV-05) - string concatenation into a LIKE clause.
     # Column count (5) is chosen to line up with the users table for a teachable
@@ -89,7 +102,18 @@ def cart():
 def cart_add(product_id):
     cart_items = session.get("cart", {})
     key = str(product_id)
-    cart_items[key] = cart_items.get(key, 0) + int(request.form.get("qty", 1))
+    if current_app.config["AUTH_SECURE"]:
+        # WSTG-INPV-04/05: one integer in 1..QTY_MAX (a repeated qty field is rejected, not
+        # resolved first-wins or last-wins), for a product that exists, capped per cart line.
+        qty = validation.form_int("qty", 1, validation.QTY_MAX) if "qty" in request.form else 1
+        if not get_product(product_id):
+            abort(404)
+        if qty is None or cart_items.get(key, 0) + qty > validation.QTY_MAX:
+            flash(t("input.flash_invalid"), "danger")
+            return redirect(request.referrer or url_for("shop.index"))
+        cart_items[key] = cart_items.get(key, 0) + qty
+    else:
+        cart_items[key] = cart_items.get(key, 0) + int(request.form.get("qty", 1))
     session["cart"] = cart_items
     flash(t("shop.flash_added_to_cart"), "success")
     return redirect(request.referrer or url_for("shop.index"))

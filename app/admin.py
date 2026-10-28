@@ -16,8 +16,10 @@ from flask import (
 )
 
 from app import security as sec
+from app import validation
 from app.db import get_db, init_db
 from app.i18n import t
+from app.shop import CATEGORIES
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -89,6 +91,21 @@ def products():
         description = request.form.get("description", "")
         price = request.form.get("price", "0")
         category = request.form.get("category", "")
+        if current_app.config["AUTH_SECURE"]:
+            # WSTG-INPV: type/range/length/allow-list checks instead of a 500 on float("abc").
+            try:
+                price_ok = 0 < float(price) <= validation.PRODUCT_PRICE_MAX
+            except (TypeError, ValueError):
+                price_ok = False
+            if (
+                not price_ok
+                or not name.strip()
+                or len(name) > validation.PRODUCT_NAME_MAX
+                or len(description) > validation.PRODUCT_DESC_MAX
+                or category not in CATEGORIES
+            ):
+                flash(t("input.flash_invalid"), "danger")
+                return redirect(url_for("admin.products"))
         db.execute(
             "INSERT INTO products (name, description, price, category, image) VALUES (?, ?, ?, ?, ?)",
             (name, description, float(price), category, "placeholder.svg"),
@@ -123,7 +140,7 @@ def ping():
     host = ""
     if request.method == "POST":
         host = request.form.get("host", "")
-        # VULN: Command Injection (OWASP A03:2021, WSTG-BUSL / WSTG-INPV-11) -
+        # VULN: Command Injection (OWASP A03:2021, WSTG-INPV-12) -
         # user input concatenated directly into a shell=True command string.
         # e.g. host = "127.0.0.1; id" runs a second command.
         # SAFETY: run this app only inside the provided Docker container on an
@@ -131,8 +148,13 @@ def ping():
         # touch the sandboxed container, never a real external host.
         cmd = "ping -c 1 " + host
         try:
+            if current_app.config["AUTH_SECURE"]:
+                # Secure mode: allow-list the hostname and pass argv directly, no shell.
+                if not validation.HOSTNAME_RE.fullmatch(host.strip()):
+                    return render_template("admin/ping.html", host=host, output=t("input.flash_invalid")), 400
+                cmd = ["ping", "-c", "1", host.strip()]
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, text=True, timeout=5
+                cmd, shell=not current_app.config["AUTH_SECURE"], capture_output=True, text=True, timeout=5
             )
             output = result.stdout + result.stderr
         except Exception as e:
@@ -152,13 +174,15 @@ def fetch_image():
     error = None
     if request.method == "POST":
         url = request.form.get("url", "")
-        # VULN: SSRF (OWASP A10:2021, WSTG-BUSL-11) - server-side fetch of an
+        # VULN: SSRF (OWASP A10:2021, WSTG-INPV-19) - server-side fetch of an
         # attacker-supplied URL with no scheme/host allow-list, so it can be
         # pointed at internal-only endpoints (e.g. http://127.0.0.1:5000/admin/users)
         # that are not meant to be reachable from outside the app.
         # SAFETY: run only on the isolated Docker network (see README) so this
         # cannot be used to reach real third-party hosts.
         try:
+            if current_app.config["AUTH_SECURE"]:
+                return _fetch_image_secure(url)
             resp = requests.get(url, timeout=5)
             filename = f"fetched_{int(time.time())}.img"
             save_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
@@ -169,6 +193,30 @@ def fetch_image():
             error = str(e)
 
     return render_template("admin/fetch_image.html", url=url, fetched_path=fetched_path, error=error)
+
+
+def _fetch_image_secure(url):
+    """Allow-listed fetch (WSTG-INPV-19): public http(s) hosts only, no redirects, size and
+    content-type limits, and a server-chosen filename/extension."""
+    def bad():
+        page = render_template("admin/fetch_image.html", url=url, fetched_path=None, error=t("input.flash_fetch_failed"))
+        return page, 400
+
+    if not validation.is_public_http_url(url):
+        sec.audit("ssrf_blocked", user=session.get("username"), url=url)
+        return bad()
+    try:
+        resp = requests.get(url.strip(), timeout=5, allow_redirects=False, stream=True)
+        data = resp.raw.read(validation.FETCH_MAX_BYTES + 1, decode_content=True)
+    except requests.RequestException:
+        return bad()
+    ext = validation.IMAGE_TYPES.get(resp.headers.get("Content-Type", "").split(";")[0].strip().lower())
+    if resp.status_code != 200 or not ext or len(data) > validation.FETCH_MAX_BYTES:
+        return bad()
+    filename = f"fetched_{int(time.time())}.{ext}"
+    with open(os.path.join(current_app.config["UPLOAD_FOLDER"], filename), "wb") as f:
+        f.write(data)
+    return render_template("admin/fetch_image.html", url=url, fetched_path=f"/uploads/{filename}", error=None)
 
 
 @admin_bp.route("/reset", methods=["POST"])
